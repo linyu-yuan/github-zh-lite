@@ -9,7 +9,6 @@
 - **查找更快**：先精确查表（页面词库 → 公共词库），未命中才跑正则；正则按“必需字面量”预筛（`indexOf` 不含就跳过），每页无字面量的规则限 30 条。
 - **分片处理**：MutationObserver 只入队并防抖 80 ms，`requestIdleCallback` 每片最多约 50 个节点 / 8 ms；跳过代码、文件内容、`.markdown-body`、输入框、contenteditable、隐藏子树（展开时再补译）、以及用户内容（标题、评论、提交信息、文件名、仓库名、用户名、话题标签等）。
 - **移植上游函数规则**：日期（`Jul 24, 2025`、`Updated on …`、`Joined on …`）、相对时间（`2 days ago`、`about 1 month ago`、`in 5 minutes`、`yesterday` 等）；GitHub 的 `<relative-time>` 元素直接设置 `lang="zh-CN"` 让其原生输出中文。
-- **漏翻收集器**：左下角半透明小圆钮（数字为已收集条数），点开面板可“复制漏翻列表”（纯文本，按页面类型分组，每行“原文<TAB>路径”）、“清空”、“隐藏按钮”。隐藏后在任意 GitHub 网址末尾加 `#zh-lite` 即可恢复。数据只保存在本机 localStorage。
 
 ## 性能（Playwright，iPhone 13 UA/视口，CPU 6 倍降速，同一已加载页面注入脚本）
 | 页面 | v1 注入耗时 | v2 注入耗时 | v1 长任务合计 | v2 长任务合计 |
