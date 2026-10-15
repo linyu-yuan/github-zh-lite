@@ -226,5 +226,21 @@
 "Status checks": "状态检查",
 "Enterprise Server": "企业服务器",
 "Support and deployment": "支持与部署",
-"Standard Support": "标准支持"
+"Standard Support": "标准支持",
+"1 week": "1 周",
+"1 month": "1 个月",
+"3 months": "3 个月",
+"6 months": "6 个月",
+"1 year": "1 年",
+"Don't specify": "不指定",
+"Custom": "自定义",
+"Select a verified email to display": "选择要显示的已验证电子邮箱",
+"No Preference": "未设置",
+"Save Trending settings": "保存趋势设置",
+"Name": "名称",
+"Filter by…": "筛选…",
+"Assigned": "已分配",
+"Participating": "参与中",
+"Team mentioned": "团队被提及",
+"Review requested": "请求审查"
 }

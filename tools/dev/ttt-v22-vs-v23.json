@@ -1,0 +1,178 @@
+[
+ {
+  "page": "repo",
+  "ver": "v22",
+  "mode": "cold",
+  "fin": 183,
+  "t50": 11579,
+  "t90": 11714,
+  "fcp": 1792,
+  "dcl": 5139,
+  "atFcp": 0
+ },
+ {
+  "page": "repo",
+  "ver": "v22",
+  "mode": "cached",
+  "fin": 183,
+  "t50": 8213,
+  "t90": 8473,
+  "fcp": 1884,
+  "dcl": 4361,
+  "atFcp": 0
+ },
+ {
+  "page": "repo",
+  "ver": "v23",
+  "mode": "cold",
+  "fin": 191,
+  "t50": 1805,
+  "t90": 2624,
+  "fcp": 1648,
+  "dcl": 4632,
+  "atFcp": 43
+ },
+ {
+  "page": "repo",
+  "ver": "v23",
+  "mode": "cached",
+  "fin": 191,
+  "t50": 1791,
+  "t90": 2564,
+  "fcp": 1776,
+  "dcl": 3899,
+  "atFcp": 109
+ },
+ {
+  "page": "issues",
+  "ver": "v22",
+  "mode": "cold",
+  "fin": 205,
+  "t50": 7807,
+  "t90": 8092,
+  "fcp": 1460,
+  "dcl": 3591,
+  "atFcp": 0
+ },
+ {
+  "page": "issues",
+  "ver": "v22",
+  "mode": "cached",
+  "fin": 205,
+  "t50": 5339,
+  "t90": 5576,
+  "fcp": 1232,
+  "dcl": 2326,
+  "atFcp": 0
+ },
+ {
+  "page": "issues",
+  "ver": "v23",
+  "mode": "cold",
+  "fin": 213,
+  "t50": 1633,
+  "t90": 2282,
+  "fcp": 1612,
+  "dcl": 3959,
+  "atFcp": 109
+ },
+ {
+  "page": "issues",
+  "ver": "v23",
+  "mode": "cached",
+  "fin": 213,
+  "t50": 1375,
+  "t90": 2038,
+  "fcp": 1356,
+  "dcl": 2810,
+  "atFcp": 109
+ },
+ {
+  "page": "explore",
+  "ver": "v22",
+  "mode": "cold",
+  "fin": 206,
+  "t50": 8461,
+  "t90": 8623,
+  "fcp": 2640,
+  "dcl": 3833,
+  "atFcp": 0
+ },
+ {
+  "page": "explore",
+  "ver": "v22",
+  "mode": "cached",
+  "fin": 206,
+  "t50": 5008,
+  "t90": 5098,
+  "fcp": 1212,
+  "dcl": 1752,
+  "atFcp": 0
+ },
+ {
+  "page": "explore",
+  "ver": "v23",
+  "mode": "cold",
+  "fin": 226,
+  "t50": 2322,
+  "t90": 2907,
+  "fcp": 2284,
+  "dcl": 4056,
+  "atFcp": 116
+ },
+ {
+  "page": "explore",
+  "ver": "v23",
+  "mode": "cached",
+  "fin": 226,
+  "t50": 1311,
+  "t90": 1806,
+  "fcp": 1260,
+  "dcl": 1970,
+  "atFcp": 135
+ },
+ {
+  "page": "profile",
+  "ver": "v22",
+  "mode": "cold",
+  "fin": 241,
+  "t50": 4149,
+  "t90": 4439,
+  "fcp": 1176,
+  "dcl": 2141,
+  "atFcp": 0
+ },
+ {
+  "page": "profile",
+  "ver": "v22",
+  "mode": "cached",
+  "fin": 241,
+  "t50": 2932,
+  "t90": 3132,
+  "fcp": 960,
+  "dcl": 1368,
+  "atFcp": 0
+ },
+ {
+  "page": "profile",
+  "ver": "v23",
+  "mode": "cold",
+  "fin": 259,
+  "t50": 1437,
+  "t90": 4313,
+  "fcp": 1188,
+  "dcl": 2183,
+  "atFcp": 109
+ },
+ {
+  "page": "profile",
+  "ver": "v23",
+  "mode": "cached",
+  "fin": 259,
+  "t50": 1492,
+  "t90": 2207,
+  "fcp": 964,
+  "dcl": 1474,
+  "atFcp": 71
+ }
+]

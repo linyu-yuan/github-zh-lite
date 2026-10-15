@@ -1,0 +1,17 @@
+{
+ "deleteEverywhere": [
+  "they/them",
+  "she/her",
+  "he/him",
+  "it/its",
+  "They/them",
+  "She/her",
+  "He/him"
+ ],
+ "pages": {
+  "settings/profile": {
+   "Don't specify": "不指定",
+   "Custom": "自定义"
+  }
+ }
+}

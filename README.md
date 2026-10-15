@@ -1,8 +1,13 @@
-# GitHub 中文化 Lite（iPhone 轻量版）v2.2
+# GitHub 中文化 Lite（iPhone 轻量版）v2.3
 
 专为 **iPhone Safari + Stay** 优化的 GitHub 界面中文化用户脚本。
 
 安装：<https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/github-zh-lite.user.js>
+
+## v2.3 变化
+- 下拉框 `<option>` 文本现在会翻译（提交值不变：无 value 属性的选项会先补上原文 value）；按钮型 `<input type=submit|button|reset>` 的 value、只读展示框的 value 会翻译；可编辑输入框只翻 placeholder，`reason:assign` 之类查询保持英文。
+- 代词选项 they/them、she/her、he/him 保持英文，仅翻译“不指定”“自定义”。
+- 改为 `@run-at document-start`：同步读取缓存词库，节点流入时即翻译，首次绘制前已大部分是中文；首轮翻译不因滚动/触摸暂停；冷启动时公共词库与页面词库并行下载；空闲时预取仓库/议题/拉取请求等常用页面词库；词库 JSON 结构精简。
 
 ## v2.2 变化
 - 脚本本体约 30 KB：公共词库也移到 `dict/_common.json`，与页面词库一样按需加载，缓存在 localStorage，并在同一页面会话（Turbo/React 导航）中缓存已解析的对象。
@@ -38,7 +43,7 @@
 - 遵循官方中文术语；不确定的词条保持英文。
 
 ## 重新生成
-下载上游 `locals.js` 到 `tools/`，执行 `node build.js && node gen22.js <版本号>`（`node gen22.js <版本号> dev` 生成仅供开发的漏翻检测版，不发布）。`tools/dev/` 为测试脚本。
+下载上游 `locals.js` 到 `tools/`，执行 `node build.js && node gen23.js <版本号>`（`node gen23.js <版本号> dev` 生成仅供开发的漏翻检测版，不发布）。`tools/dev/` 为测试脚本。
 
 ## 致谢与许可
 词库转换自 [maboloshi/github-chinese](https://github.com/maboloshi/github-chinese) 的 `locals.js`
