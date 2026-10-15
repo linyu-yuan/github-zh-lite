@@ -1,7 +1,8 @@
 const fs=require('fs'),vm=require('vm');
-const ctx={};vm.createContext(ctx);vm.runInContext(fs.readFileSync(__dirname+'/locals.js','utf8')+';this.__I=I18N;',ctx);
+const ctx={};vm.createContext(ctx);vm.runInContext(fs.readFileSync('locals.js','utf8')+';this.__I=I18N;',ctx);
 const I=ctx.__I,L=I['zh-CN'];const isRe=x=>Object.prototype.toString.call(x)==='[object RegExp]';
-function lit(src){let s=src.replace(/^\^/,'');let m=/^((?:[A-Za-z0-9 ,'@#&-]|\\[.()\[\]?+*\/$-])+)/.exec(s);if(!m)return '';let l=m[1].replace(/\\(.)/g,'$1');
+function lit(src){if(src.indexOf('|')!==-1)return lit0(src);let best='';const re=/(?:[A-Za-z0-9 ,'@&-]|\\[.()\[\]?+*\/$-])+/g;let m;while((m=re.exec(src))){let l=m[0];const before=src[m.index-1];if(before==='['||before==='\\')continue;const rest=src.slice(m.index+l.length);if(/^[?*{]/.test(rest))l=l.slice(0,-1);l=l.replace(/\\(.)/g,'$1');if(l.trim().length>best.trim().length)best=l;}return best.trim().length>=3?best:'';}
+function lit0(src){let s=src.replace(/^\^/,'');let m=/^((?:[A-Za-z0-9 ,'@#&-]|\\[.()\[\]?+*\/$-])+)/.exec(s);if(!m)return '';let l=m[1].replace(/\\(.)/g,'$1');
  // drop last char if followed by quantifier
  const rest=s.slice(m[1].length);if(/^[?*{]/.test(rest))l=l.slice(0,-1);return l.trim().length>=3?l:'';}
 function rules(arr){const out=[];let fn=0;for(const r of arr||[]){if(!isRe(r[0]))continue;if(typeof r[1]!=='string'){fn++;continue;}if(r[1]==='end')continue;try{new RegExp(r[0].source,r[0].flags.replace('g',''))}catch(e){continue}out.push([r[0].source,r[0].flags.replace('g',''),r[1],lit(r[0].source)]);}return [out,fn];}

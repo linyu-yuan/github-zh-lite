@@ -1,11 +1,20 @@
-# GitHub 中文化 Lite（iPhone 轻量版）v2
+# GitHub 中文化 Lite（iPhone 轻量版）v2.2
 
 专为 **iPhone Safari + Stay** 优化的 GitHub 界面中文化用户脚本。
 
 安装：<https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/github-zh-lite.user.js>
 
+## v2.2 变化
+- 脚本本体约 30 KB：公共词库也移到 `dict/_common.json`，与页面词库一样按需加载，缓存在 localStorage，并在同一页面会话（Turbo/React 导航）中缓存已解析的对象。
+- 用快速分类器（标签/类名/属性查表，结果缓存在元素上）代替对每个元素调用大选择器 `matches/closest`；跳过区域内的 DOM 变动直接丢弃。
+- 只观察 childList、文本变化以及 `hidden`/`open` 属性，不再观察 aria-label/title/placeholder 属性变化。
+- 去掉 1 秒轮询，改为包装 `history.pushState/replaceState`；未发生导航时不再重复整页扫描（之前 `pageshow` 会导致一次多余的全量扫描）。
+- 每个时间片 4 ms / 50 个节点；滚动或触摸期间暂停，停止 200 ms 后继续。
+- 正则预筛改为取规则中最长的必需字面量；日期/相对时间规则仅在文本含数字或 “ago” 等时才运行。
+- 补充词条：从无头浏览器爬取 46 类公开页面收集的漏翻中，补入上游其他页面已有的译法 135 条、手工翻译 69 条（Watchers、Forks、Milestones、Labels、Latest commit、Footer navigation、显示密度等）。
+
 ## v2 变化
-- **脚本本体约 89 KB**：加载器 + 公共词库（上游 `public`）内联；各页面词库（仓库、议题、拉取请求、操作、设置、仪表板、通知、个人主页……共 275 类，与上游分组一致）放在 `dict/<页面类型>.json`，按需用 `fetch()` 从 raw.githubusercontent.com 加载，并以版本号为键缓存在 localStorage。加载失败时只用公共词库，不影响页面。
+- **脚本本体约 89 KB（v2.2 起约 30 KB）**：加载器 + 公共词库（上游 `public`）内联；各页面词库（仓库、议题、拉取请求、操作、设置、仪表板、通知、个人主页……共 275 类，与上游分组一致）放在 `dict/<页面类型>.json`，按需用 `fetch()` 从 raw.githubusercontent.com 加载，并以版本号为键缓存在 localStorage。加载失败时只用公共词库，不影响页面。
 - **查找更快**：先精确查表（页面词库 → 公共词库），未命中才跑正则；正则按“必需字面量”预筛（`indexOf` 不含就跳过），每页无字面量的规则限 30 条。
 - **分片处理**：MutationObserver 只入队并防抖 80 ms，`requestIdleCallback` 每片最多约 50 个节点 / 8 ms；跳过代码、文件内容、`.markdown-body`、输入框、contenteditable、隐藏子树（展开时再补译）、以及用户内容（标题、评论、提交信息、文件名、仓库名、用户名、话题标签等）。
 - **移植上游函数规则**：日期（`Jul 24, 2025`、`Updated on …`、`Joined on …`）、相对时间（`2 days ago`、`about 1 month ago`、`in 5 minutes`、`yesterday` 等）；GitHub 的 `<relative-time>` 元素直接设置 `lang="zh-CN"` 让其原生输出中文。
@@ -29,7 +38,7 @@
 - 遵循官方中文术语；不确定的词条保持英文。
 
 ## 重新生成
-下载上游 `locals.js` 到 `tools/`，执行 `node build.js && node gen.js <版本号>`。
+下载上游 `locals.js` 到 `tools/`，执行 `node build.js && node gen22.js <版本号>`（`node gen22.js <版本号> dev` 生成仅供开发的漏翻检测版，不发布）。`tools/dev/` 为测试脚本。
 
 ## 致谢与许可
 词库转换自 [maboloshi/github-chinese](https://github.com/maboloshi/github-chinese) 的 `locals.js`
