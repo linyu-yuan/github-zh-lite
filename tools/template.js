@@ -124,6 +124,7 @@
     '.AppHeader-context-item-label', '.branch-name', '.ref-selector-button-text-container',
     '.user-mention', '.author', '.commit-author', '.vcard-names', '.p-nickname', '.p-name', '.p-note', '.user-profile-bio',
     'a[data-hovercard-type="repository"]', 'a[data-hovercard-type="user"]', 'a[data-hovercard-type="organization"]',
+    '[data-hovercard-type]', '[data-testid*="title-link"]', '[data-testid="author-filter-link"]', '[data-testid*="markdown"]', '[data-testid="issue-body"]', '.styled-input-container', '[class*="contextCrumb"]', '[class*="Breadcrumbs-Item"]', '[class*="IssueTitle"]', '[class*="markdownBody"]', 'h1 bdi', '[itemprop="programmingLanguage"]', 'a[href*="/topics/"]', 'article h1', 'article h3', 'article p', '.Box-row h2', '.Box-row p', '[data-testid="results-list"] h3', '[data-testid="results-list"] [class*="Text"] em', '.search-match', 'bdi.js-issue-title',
     '.repo', '.f4.my-3', '.f4.tmp-my-3', '.topic-tag', '.IssueLabel', '.Label--color', '[translate="no"]', '.notranslate', '#gzl-root'
   ].join(',');
   var SKIP_TAG = { SCRIPT: 1, STYLE: 1, PRE: 1, CODE: 1, TEXTAREA: 1, INPUT: 1, SELECT: 1, NOSCRIPT: 1, TEMPLATE: 1, svg: 1, SVG: 1, KBD: 1 };
@@ -159,7 +160,7 @@
       return 2;
     }
     if (x.tagName === 'RELATIVE-TIME' || x.tagName === 'TIME-AGO' || x.tagName === 'LOCAL-TIME') {
-      if (x.getAttribute('lang') !== 'zh-CN') x.setAttribute('lang', 'zh-CN');
+      if (x.getAttribute('lang') !== 'zh-CN') { x.setAttribute('lang', 'zh-CN'); if (x.getAttribute('prefix') == null) x.setAttribute('prefix', ''); }
       return 2;
     }
     if (x.hasAttribute('hidden') || x.isContentEditable) return 2;
@@ -279,6 +280,7 @@
   for (var mt in MISS) if (hasOwn.call(MISS, mt)) for (var mk in MISS[mt]) missN++;
   function miss(k) {
     if (k.length < 2 || k.length > 80 || !ALPHA2.test(k) || missN > 3000) return;
+    if (HAS_CJK.test(k) || /#\d+/.test(k) || /^[\w.-]+\/[\w.-]+/.test(k) || /^\S*\d\S*$/.test(k)) return;
     if (/^[\w.-]+\/[\w.-]+$/.test(k) || /^@?[\w-]+$/.test(k) && !/^[A-Z][a-z]+$/.test(k) && k.indexOf('-') !== -1) return; // 像 owner/repo、user-name
     var g = (page.type || loadingType || detect() || 'other');
     var bucket = MISS[g] || (MISS[g] = {});

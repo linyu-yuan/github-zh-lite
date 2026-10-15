@@ -1,5 +1,5 @@
 const fs=require('fs'),vm=require('vm');
-const ctx={};vm.createContext(ctx);vm.runInContext(fs.readFileSync('locals.js','utf8')+';this.__I=I18N;',ctx);
+const ctx={};vm.createContext(ctx);vm.runInContext(fs.readFileSync(__dirname+'/locals.js','utf8')+';this.__I=I18N;',ctx);
 const I=ctx.__I,L=I['zh-CN'];const isRe=x=>Object.prototype.toString.call(x)==='[object RegExp]';
 function lit(src){let s=src.replace(/^\^/,'');let m=/^((?:[A-Za-z0-9 ,'@#&-]|\\[.()\[\]?+*\/$-])+)/.exec(s);if(!m)return '';let l=m[1].replace(/\\(.)/g,'$1');
  // drop last char if followed by quantifier
