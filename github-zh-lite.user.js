@@ -2,7 +2,7 @@
 // @name         GitHub 中文化 Lite (iPhone 轻量版)
 // @namespace    https://github.com/linyu-yuan/github-zh-lite
 // @description  为 iPhone Safari (Stay) 优化的 GitHub 界面中文化脚本：ES5、无 GM_ API、公共词库内联、页面词库按需加载并缓存、分片空闲翻译。词库来自 maboloshi/github-chinese。
-// @version      2.3.0
+// @version      2.3.1
 // @author       linyu-yuan (基于 沙漠之子 maboloshi / 楼教主 52cik 的 github-chinese)
 // @copyright    2016-2021 楼教主 (https://github.com/52cik); 2021-present 沙漠之子 (https://github.com/maboloshi); 2026 linyu-yuan
 // @license      GPL-3.0
@@ -24,7 +24,7 @@
 (function () {
   'use strict';
   if (window.__ghZhLite) return; window.__ghZhLite = 1;
-  var VER = '2.3.0';
+  var VER = '2.3.1';
   var DICT_URL = 'https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/dict/';
   var COMMON = { s: {}, r: [], t: {} };
   var CONF = {"p":"^\\/($|home|dashboard|feed|copilot|spark|signup|account_verifications|login\\/oauth|login|logout|sessions?|password_reset|orgs|explore|topics|notifications\\/subscriptions|notifications|watching|stars|issues|pulls|repos|search|trending|showcases|new\\/(import|project)|new|import|settings\\/(profile|admin|appearance|accessibility|notifications|billing|emails|security_analysis|security-log|security|auth|sessions|keys|ssh|gpg|organizations|enterprises|blocked_users|interaction_limits|code_review_limits|repositories|codespaces|models|codespaces\\/allow_permissions|deleted_repositories|packages|copilot|pages|replies|installations|apps\\/authorizations|reminders|sponsors-log|apps|(?:personal-access-|)tokens|developers|applications\\/new|applications|connections\\/applications|education\\/benefits|credentials)|settings|installations\\/new|marketplace|apps|account\\/(organizations\\/new|choose|upgrade|billing\\/history)|projects|redeem|discussions|collections|sponsors|sponsoring|github-copilot\\/(signup|free_signup|code-review-waitlist|pro)|codespaces|developer\\/register|features|security|sitemap|education|mcp)|^\\/users\\/[^\\/]+\\/(projects|packages|succession\\/invitation)","r":"^\\/[^\\/]+\\/[^\\/]+\\/(issues|pulls|pull|tree|watchers|stargazers|new|edit|delete|upload|find|models|wiki|branches|discussions|activity|rules|releases|packages|tags|labels|milestones?|compare|commit|blob|blame|actions(\\/metrics\\/(usage|performance))?|runs|deployments|security|pulse|community|forks|fork|import|graphs\\/(contributors|community|traffic|commit-activity|code-frequency)|network$|network\\/(dependencies|dependents|updates|members)|settings\\/(access|code_review_limits|interaction_limits|branches|branch_protection_rules|tag_protection|rules|actions|models\\/access-policy|hooks|copilot\\/(code_review|coding_agent)|environments|codespaces|pages|security_analysis|dependabot_rules|keys|secrets|variables|installations|notifications|key_links)|settings|transfer|projects\\/new|projects|pkgs|contribute|subscription|invitations|codespaces|attestations|custom-properties|reported_content|agents|tasks)","o":"^\\/[^\\/]+\\/[^\\/]+\\/(repositories\\/new|repositories|sponsoring|discussions|projects|packages|teams|new-team|people|outside-collaborators|pending_collaborators|dashboard|billing_managers\\/new|invitations?|settings\\/(profile|billing|roles|member_privileges|teams|import-export|blocked_users|interaction_limits|code_review_limits|moderators|repository-defaults|rules|codespaces|copilot|actions|hooks|discussions|packages|pages|projects|security_analysis|security|dependabot_rules|domains|secrets|variables|oauth_application_policy|installations|personal-access-token|reminders|sponsors-log|audit-log|deleted_repositories|applications\\/new|applications|apps\\/new|apps|publisher|policies\\/repositories|custom-properties|issue-fields|sandboxes)|topics|domain\\/new|audit-log\\/event_settings|billing\\/(history|plans)|policies\\/applications)|^\\/[^\\/]+\\/(enterprise_plan|sponsoring)"};
@@ -164,6 +164,8 @@
     node.__zg = gen;
     if (!checked) { var p = node.parentNode; if (!p || p.nodeType !== 1 || inSkip(p)) { node.__zh = v; return; } }
     if (HAS_CJK.test(v) && !ALPHA2.test(v)) { node.__zh = v; return; }
+    var pp = node.parentNode;
+    if (pp && pp.tagName === 'OPTION' && pp.getAttribute('value') && pp.parentNode && pp.parentNode.options && pp.parentNode.options.length > 30) { node.__zh = v; return; } // 语言/时区等长列表保持原文
     var t = translateString(v, true);
     if (t != null && t !== v) {
       var po = node.parentNode;

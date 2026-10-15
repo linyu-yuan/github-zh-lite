@@ -164,6 +164,8 @@
     node.__zg = gen;
     if (!checked) { var p = node.parentNode; if (!p || p.nodeType !== 1 || inSkip(p)) { node.__zh = v; return; } }
     if (HAS_CJK.test(v) && !ALPHA2.test(v)) { node.__zh = v; return; }
+    var pp = node.parentNode;
+    if (pp && pp.tagName === 'OPTION' && pp.getAttribute('value') && pp.parentNode && pp.parentNode.options && pp.parentNode.options.length > 30) { node.__zh = v; return; } // 语言/时区等长列表保持原文
     var t = translateString(v, true);
     if (t != null && t !== v) {
       var po = node.parentNode;
