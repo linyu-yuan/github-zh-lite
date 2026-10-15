@@ -245,5 +245,9 @@
 "Review requested": "请求审查",
 "Switch to classic dashboard": "切换到经典仪表板",
 "Switch to new dashboard": "切换到新版仪表板",
-"Switch back": "切换回去"
+"Switch back": "切换回去",
+"Pull requests that are waiting for review or have running checks will appear here.": "等待审查或正在运行检查的拉取请求将显示在这里。",
+"Pull requests with failing checks, merge conflicts, outdated branches, or required changes will appear here.": "检查失败、存在合并冲突、分支已过时或需要更改的拉取请求将显示在这里。",
+"Pull requests that are ready to merge will appear here.": "可以合并的拉取请求将显示在这里。",
+"Pull requests that need your review will appear here.": "需要您审查的拉取请求将显示在这里。"
 }
