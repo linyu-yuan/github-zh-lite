@@ -158,11 +158,12 @@
   }
   var ATTRS = ['placeholder', 'aria-label', 'title'];
 
+  var HDR = {'Pull requests':'拉取请求','Issues':'议题','Notifications':'通知','Dashboard':'仪表板','Explore':'探索','Marketplace':'市场','Codespaces':'代码空间','Settings':'设置','Repositories':'仓库','Projects':'项目','Stars':'星标','Gists':'代码片段','Organizations':'组织','Sponsors':'赞助','Discussions':'讨论','Your repositories':'您的仓库','Your stars':'您的星标','Your projects':'您的项目','Trending':'趋势','Topics':'主题','Collections':'集合','Search':'搜索','New repository':'新建仓库','Import repository':'导入仓库','Copilot':'Copilot'};
   function doText(node, checked) {
     var v = node.nodeValue;
     if (node.__zh === v && node.__zg === gen) return;
     node.__zg = gen;
-    if (!checked) { var p = node.parentNode; if (!p || p.nodeType !== 1 || inSkip(p)) { node.__zh = v; return; } }
+    if (!checked) { var p = node.parentNode; if (!p || p.nodeType !== 1 || inSkip(p)) { var hz = HDR[v.replace(/^\s+|\s+$/g, '')]; if (hz && p && p.closest && p.closest('.AppHeader-context-item-label, .AppHeader-context')) { node.__zh = node.nodeValue = v.replace(/\S[\s\S]*\S|\S/, hz); } else node.__zh = v; return; } }
     if (HAS_CJK.test(v) && !ALPHA2.test(v)) { node.__zh = v; return; }
     var pp = node.parentNode;
     if (pp && pp.tagName === 'OPTION' && pp.getAttribute('value') && pp.parentNode && pp.parentNode.options && pp.parentNode.options.length > 30) { node.__zh = v; return; } // 语言/时区等长列表保持原文
