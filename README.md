@@ -1,8 +1,13 @@
-# GitHub 中文化 Lite（iPhone 轻量版）v2.3
+# GitHub 中文化（iPhone 轻量版）v2.4
 
 专为 **iPhone Safari + Stay** 优化的 GitHub 界面中文化用户脚本。
 
 安装：<https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/github-zh-lite.user.js>
+
+## v2.4 变化
+- 名称改为“GitHub 中文化（iPhone 轻量版）”（仓库名与安装地址不变，更新不受影响）。
+- 移除 Safari 智能 App 横幅（“在 GitHub App 中打开”）：document-start 时立即删除 `<meta name="apple-itunes-app">`，并在解析期间用 MutationObserver 持续删除。注意：Safari 可能在解析该 meta 时就已决定显示横幅，或脚本注入晚于此时，横幅仍可能出现。
+- 防英文闪烁：已有缓存词库时，页面在首轮翻译完成前隐藏（最多 600 ms，超时必定显示）；首次无缓存访问不隐藏。新增节点（包括 Turbo/React 导航后换入的内容）在 MutationObserver 回调中同步翻译（每批最多 12 ms），先于绘制。
 
 ## v2.3 变化
 - 下拉框 `<option>` 文本现在会翻译（提交值不变：无 value 属性的选项会先补上原文 value）；按钮型 `<input type=submit|button|reset>` 的 value、只读展示框的 value 会翻译；可编辑输入框只翻 placeholder，`reason:assign` 之类查询保持英文。

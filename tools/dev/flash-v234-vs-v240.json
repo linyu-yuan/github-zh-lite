@@ -1,0 +1,98 @@
+[
+ {
+  "page": "repo",
+  "ver": "v234",
+  "fcp": 2140,
+  "frames": 106,
+  "visibleFrames": 106,
+  "englishFlashNodes": 18,
+  "firstFlashAt": 7432,
+  "sample": "Public / Notifications / Fork / Star / About / Topics",
+  "navFlash": "n/a",
+  "bannerMeta": true
+ },
+ {
+  "page": "repo",
+  "ver": "v240",
+  "fcp": 1832,
+  "frames": 136,
+  "visibleFrames": 133,
+  "englishFlashNodes": 0,
+  "firstFlashAt": "",
+  "sample": "",
+  "navFlash": "n/a",
+  "bannerMeta": false
+ },
+ {
+  "page": "issues",
+  "ver": "v234",
+  "fcp": 1300,
+  "frames": 179,
+  "visibleFrames": 179,
+  "englishFlashNodes": 80,
+  "firstFlashAt": 4559,
+  "sample": "Repository navigation / Code / Issues / Pull requests / Disc",
+  "navFlash": "n/a",
+  "bannerMeta": true
+ },
+ {
+  "page": "issues",
+  "ver": "v240",
+  "fcp": 1456,
+  "frames": 252,
+  "visibleFrames": 246,
+  "englishFlashNodes": 0,
+  "firstFlashAt": "",
+  "sample": "",
+  "navFlash": "n/a",
+  "bannerMeta": false
+ },
+ {
+  "page": "explore",
+  "ver": "v234",
+  "fcp": 1156,
+  "frames": 191,
+  "visibleFrames": 191,
+  "englishFlashNodes": 56,
+  "firstFlashAt": 4015,
+  "sample": "Navigation Menu / Sign in / Platform / AI CODE CREATION / Wr",
+  "navFlash": 56,
+  "bannerMeta": true
+ },
+ {
+  "page": "explore",
+  "ver": "v240",
+  "fcp": 1524,
+  "frames": 190,
+  "visibleFrames": 184,
+  "englishFlashNodes": 0,
+  "firstFlashAt": "",
+  "sample": "",
+  "navFlash": 0,
+  "bannerMeta": false
+ },
+ {
+  "page": "profile",
+  "ver": "v234",
+  "fcp": 1004,
+  "frames": 275,
+  "visibleFrames": 275,
+  "englishFlashNodes": 56,
+  "firstFlashAt": 2648,
+  "sample": "Navigation Menu / Sign in / Platform / AI CODE CREATION / Wr",
+  "navFlash": "n/a",
+  "bannerMeta": true
+ },
+ {
+  "page": "profile",
+  "ver": "v240",
+  "fcp": 1716,
+  "frames": 284,
+  "visibleFrames": 276,
+  "englishFlashNodes": 0,
+  "firstFlashAt": "",
+  "sample": "",
+  "navFlash": "n/a",
+  "bannerMeta": false
+ }
+]
