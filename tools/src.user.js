@@ -1,20 +1,14 @@
 // ==UserScript==
-// @name         GitHub 中文化 Lite (iPhone 轻量版)
+// @name         GitHub 中文化（iPhone 轻量版）
 // @namespace    https://github.com/linyu-yuan/github-zh-lite
-// @description  为 iPhone Safari (Stay) 优化的 GitHub 界面中文化脚本：ES5、无 GM_ API、公共词库内联、页面词库按需加载并缓存、分片空闲翻译。词库来自 maboloshi/github-chinese。
-// @version      __VER__
-// @author       linyu-yuan (基于 沙漠之子 maboloshi / 楼教主 52cik 的 github-chinese)
-// @copyright    2016-2021 楼教主 (https://github.com/52cik); 2021-present 沙漠之子 (https://github.com/maboloshi); 2026 linyu-yuan
+// @version      2.7.0
+// @description  GitHub 界面简体中文化，为 iPhone Safari 优化：整句翻译、页面词库按需加载并缓存、无英文闪烁。词库基于 maboloshi/github-chinese。
+// @author       linyu-yuan
 // @license      GPL-3.0
-// @homepageURL  https://github.com/linyu-yuan/github-zh-lite
-// @supportURL   https://github.com/linyu-yuan/github-zh-lite/issues
-// @downloadURL  https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/github-zh-lite.user.js
-// @updateURL    https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/github-zh-lite.user.js
 // @match        https://github.com/*
 // @match        https://gist.github.com/*
-// @run-at       document-end
+// @run-at       document-start
 // @grant        none
-// @noframes
 // ==/UserScript==
 /*
  * 词库（COMMON 及 dict/*.json）由 maboloshi/github-chinese 的 locals.js 转换而来，
@@ -23,12 +17,25 @@
  */
 (function () {
   'use strict';
+  try { if (window.top !== window.self) return; } catch (e) { return; } // 代替 @noframes
   if (window.__ghZhLite) return; window.__ghZhLite = 1;
-  var VER = '__VER__';
+  var VER = '2.7.0';
   var DICT_URL = 'https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/dict/';
   var COMMON = { s: {}, r: [], t: {} };
-  var CONF = /*CONF*/{};
-  var PAGES = /*PAGES*/[];
+  var CONF = {
+    p: "^\\/($|home|dashboard|feed|copilot|spark|signup|account_verifications|login\\/oauth|login|logout|sessions?|password_reset|orgs|explore|topics|notifications\\/subscriptions|notifications|watching|stars|issues|pulls|repos|search|trending|showcases|new\\/(import|project)|new|import|settings\\/(profile|" +
+      "admin|appearance|accessibility|notifications|billing|emails|security_analysis|security-log|security|auth|sessions|keys|ssh|gpg|organizations|enterprises|blocked_users|interaction_limits|code_review_limits|repositories|codespaces|models|codespaces\\/allow_permissions|deleted_repositories|packages|" +
+      "copilot|pages|replies|installations|apps\\/authorizations|reminders|sponsors-log|apps|(?:personal-access-|)tokens|developers|applications\\/new|applications|connections\\/applications|education\\/benefits|credentials)|settings|installations\\/new|marketplace|apps|account\\/(organizations\\/new|choose|" +
+      "upgrade|billing\\/history)|projects|redeem|discussions|collections|sponsors|sponsoring|github-copilot\\/(signup|free_signup|code-review-waitlist|pro)|codespaces|developer\\/register|features|security|sitemap|education|mcp)|^\\/users\\/[^\\/]+\\/(projects|packages|succession\\/invitation)",
+    r: "^\\/[^\\/]+\\/[^\\/]+\\/(issues|pulls|pull|tree|watchers|stargazers|new|edit|delete|upload|find|models|wiki|branches|discussions|activity|rules|releases|packages|tags|labels|milestones?|compare|commit|blob|blame|actions(\\/metrics\\/(usage|performance))?|runs|deployments|security|pulse|community|forks|" +
+      "fork|import|graphs\\/(contributors|community|traffic|commit-activity|code-frequency)|network$|network\\/(dependencies|dependents|updates|members)|settings\\/(access|code_review_limits|interaction_limits|branches|branch_protection_rules|tag_protection|rules|actions|models\\/access-policy|hooks|" +
+      "copilot\\/(code_review|coding_agent)|environments|codespaces|pages|security_analysis|dependabot_rules|keys|secrets|variables|installations|notifications|key_links)|settings|transfer|projects\\/new|projects|pkgs|contribute|subscription|invitations|codespaces|attestations|custom-properties|" +
+      "reported_content|agents|tasks)",
+    o: "^\\/[^\\/]+\\/[^\\/]+\\/(repositories\\/new|repositories|sponsoring|discussions|projects|packages|teams|new-team|people|outside-collaborators|pending_collaborators|dashboard|billing_managers\\/new|invitations?|settings\\/(profile|billing|roles|member_privileges|teams|import-export|blocked_users|" +
+      "interaction_limits|code_review_limits|moderators|repository-defaults|rules|codespaces|copilot|actions|hooks|discussions|packages|pages|projects|security_analysis|security|dependabot_rules|domains|secrets|variables|oauth_application_policy|installations|personal-access-token|reminders|sponsors-log|" +
+      "audit-log|deleted_repositories|applications\\/new|applications|apps\\/new|apps|publisher|policies\\/repositories|custom-properties|issue-fields|sandboxes)|topics|domain\\/new|audit-log\\/event_settings|billing\\/(history|plans)|policies\\/applications)|^\\/[^\\/]+\\/(enterprise_plan|sponsoring)"
+  };
+  if (window.__gzlDebug) window.__gzlDbg = { inSkip: function (e) { return inSkip(e); }, tr: function (s) { return translateString(s); } };
   var LS = (function () { try { var k = '__gzl_t'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return localStorage; } catch (e) { return null; } })();
   var hasOwn = Object.prototype.hasOwnProperty;
   var HAS_DIGIT = /\d/, HAS_ALPHA = /[A-Za-z]/, ALPHA2 = /[A-Za-z]{2}/, HAS_CJK = /[\u4e00-\u9fa5]/;
@@ -39,8 +46,8 @@
     var withLit = [], noLit = [];
     for (var i = 0; i < list.length; i++) {
       var r = list[i], re;
-      try { re = new RegExp(r[0], r[1]); } catch (e) { continue; }
-      if (r[3]) withLit.push([re, r[2], r[3]]); else if (noLit.length < cap) noLit.push([re, r[2]]);
+      try { re = new RegExp('^(?:' + r[0] + ')$', r[3] || ''); } catch (e) { continue; } // 只做整句匹配，杜绝半句替换造成的中英混杂
+      if (r[2]) withLit.push([re, r[1], r[2]]); else if (noLit.length < cap) noLit.push([re, r[1]]);
     }
     return { lit: withLit, any: noLit };
   }
@@ -86,10 +93,12 @@
     return null;
   }
   // 返回 [译文|null, 是否属于“精确未命中”]
+  var DEFER = {}, deferRules = false, later = [];
   function lookup(k) {
     if (hasOwn.call(page.s, k)) return page.s[k];
     if (hasOwn.call(COMMON.s, k)) return COMMON.s[k];
     if (hasOwn.call(memo, k)) return memo[k];
+    if (deferRules) return DEFER; // 显示前只做精确查表，正则留到显示后
     var res = builtin(k);
     if (res == null && k.length < 200) {
       res = runRules(page.rules, k);
@@ -104,6 +113,7 @@
     var k = s.replace(/\s+/g, ' ').trim();
     if (!k) return null;
     var t = lookup(k);
+    if (t === DEFER) { var m0 = /^(.*?)([:：…]|\.\.\.)$/.exec(k), z0 = m0 && m0[1] && (page.s[m0[1]] || COMMON.s[m0[1]]); if (!z0) return DEFER; t = z0 + m0[2]; }
     if (t == null) {
       var m = /^(.*?)([:：…]|\.\.\.)$/.exec(k);
       if (m && m[1] && (t = page.s[m[1]] || COMMON.s[m[1]])) t += m[2];
@@ -114,7 +124,7 @@
 
   // ---------- 跳过区域（快速分类器，结果缓存在元素上，代替大选择器 matches/closest） ----------
   function set(a) { var o = {}; for (var i = 0; i < a.length; i++) o[a[i]] = 1; return o; }
-  var SKIP_TAG = set(['PRE', 'CODE', 'KBD', 'SAMP', 'TEXTAREA', 'INPUT', 'SELECT', 'SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'svg', 'SVG', 'MATH', 'math', 'IFRAME', 'CANVAS', 'VIDEO']);
+  var SKIP_TAG = set(['PRE', 'CODE', 'KBD', 'SAMP', 'TEXTAREA', 'INPUT', 'SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'svg', 'SVG', 'MATH', 'math', 'IFRAME', 'CANVAS', 'VIDEO']);
   var SKIP_CLASS = set(['markdown-body', 'comment-body', 'js-comment-body', 'blob-code', 'blob-wrapper', 'react-code-text', 'react-code-lines', 'react-blob-print-hide',
     'js-file-line', 'highlight', 'blob-num', 'diff-table', 'js-diff-progressive-container', 'file-info', 'gist-blob-name', 'commit-title', 'commit-message', 'commit-desc',
     'markdown-title', 'js-issue-title', 'js-navigation-open', 'react-directory-filename-column', 'react-directory-truncate', 'react-directory-commit-message',
@@ -158,14 +168,51 @@
   }
   var ATTRS = ['placeholder', 'aria-label', 'title'];
 
+  var HDR = {
+    'Pull requests':'拉取请求','Issues':'议题','Notifications':'通知','Dashboard':'仪表板','Explore':'探索','Marketplace':'市场','Codespaces':'代码空间','Settings':'设置','Repositories':'仓库','Projects':'项目','Stars':'星标',
+    'Gists':'代码片段','Organizations':'组织','Sponsors':'赞助','Discussions':'讨论','Your repositories':'您的仓库','Your stars':'您的星标','Your projects':'您的项目','Trending':'趋势','Topics':'主题','Collections':'集合',
+    'Search':'搜索','New repository':'新建仓库','Import repository':'导入仓库','Copilot':'Copilot'
+  };
   function doText(node, checked) {
     var v = node.nodeValue;
     if (node.__zh === v && node.__zg === gen) return;
     node.__zg = gen;
-    if (!checked) { var p = node.parentNode; if (!p || p.nodeType !== 1 || inSkip(p)) { node.__zh = v; return; } }
+    if (!checked) { var p = node.parentNode; if (!p || p.nodeType !== 1 || inSkip(p)) { var hz = HDR[v.replace(/^\s+|\s+$/g, '')]; if (hz && p && p.closest && p.closest('.AppHeader-context-item-label, .AppHeader-context')) { node.__zh = node.nodeValue = v.replace(/\S[\s\S]*\S|\S/, hz); } else node.__zh = v; return; } }
     if (HAS_CJK.test(v) && !ALPHA2.test(v)) { node.__zh = v; return; }
+    var pp = node.parentNode;
+    if (pp && pp.tagName === 'OPTION' && pp.getAttribute('value') && pp.parentNode && pp.parentNode.options && pp.parentNode.options.length > 30) { node.__zh = v; return; } // 语言/时区等长列表保持原文
     var t = translateString(v, true);
-    if (t != null && t !== v) { node.__zh = t; node.nodeValue = t; } else node.__zh = v;
+    if (t === DEFER) { later.push(node); return; }
+    if (t == null && tpl(node)) return;
+    if (t != null && t !== v) {
+      var po = node.parentNode;
+      if (po && po.tagName === 'OPTION' && !po.hasAttribute('value')) po.setAttribute('value', po.value); // 保持提交值不变
+      node.__zh = t; node.nodeValue = t;
+      var ps = node.previousSibling; // “查看全部 ” + “分支” → “查看全部分支”
+      if (ps && ps.nodeType === 3 && /[\u4e00-\u9fa5]\s+$/.test(ps.nodeValue) && /^\s*[\u4e00-\u9fa5]/.test(t)) { ps.__zh = ps.nodeValue = ps.nodeValue.replace(/\s+$/, ''); }
+    } else node.__zh = v;
+  }
+  // 含行内元素的整句：父元素文字以 {0}{1}… 代替子元素作为键，整句命中才替换各段文字（占位符须按原顺序）
+  function tpl(node) {
+    var p = node.parentNode, cs, i, k = '', n = 0, c;
+    if (!p || p.__zx === gen || !p.firstElementChild || (!page.x && !COMMON.x)) return false;
+    p.__zx = gen; cs = p.childNodes;
+    if (cs.length > 12) return false;
+    for (i = 0; i < cs.length; i++) { c = cs[i]; if (c.nodeType === 3) k += c.nodeValue; else if (c.nodeType === 1) k += '{' + n++ + '}'; }
+    k = k.replace(/\s+/g, ' ').trim();
+    if (k.length > 600 || !n) return false;
+    var z = (page.x && page.x[k]) || (COMMON.x && COMMON.x[k]);
+    if (!z) return false;
+    var seg = z.split(/\{\d+\}/), arr = [], gaps = [[]], el = [];
+    if (seg.length !== n + 1) return false;
+    for (i = 0; i < cs.length; i++) arr.push(cs[i]);
+    for (i = 0; i < arr.length; i++) { c = arr[i]; if (c.nodeType === 1) { el.push(c); gaps.push([]); } else if (c.nodeType === 3) gaps[gaps.length - 1].push(c); }
+    for (i = 0; i <= n; i++) {
+      var g = gaps[i], tx = seg[i];
+      if (!g.length) { if (tx) { c = document.createTextNode(tx); c.__zh = tx; c.__zg = gen; p.insertBefore(c, i < n ? el[i] : null); } continue; }
+      for (var j = 0; j < g.length; j++) { g[j].__zh = g[j].nodeValue = j ? '' : tx; g[j].__zg = gen; }
+    }
+    return true;
   }
   function doAttrs(el, skipped) {
     for (var i = 0; i < ATTRS.length; i++) {
@@ -175,20 +222,34 @@
       if (el[mk] === v && el.__zga === gen) continue;
       if (skipped && a !== 'placeholder') { el[mk] = v; continue; }
       var t = translateString(v, false);
+      if (t === DEFER) { later.push(el); el.__zga = -1; continue; }
       el[mk] = t || v;
       if (t && t !== v) el.setAttribute(a, t);
     }
     el.__zga = gen;
   }
+  // 输入框：只翻 placeholder；按钮型 input 的 value；只读展示框的 value。绝不改用户可编辑的值
+  var BTN_TYPE = { submit: 1, button: 1, reset: 1 };
+  function doInput(x) {
+    if (x.hasAttribute('placeholder')) doAttrs(x, true);
+    var ty = (x.getAttribute('type') || '').toLowerCase();
+    if (!(x.tagName === 'INPUT' && BTN_TYPE[ty]) && !(x.readOnly && !x.isContentEditable)) return;
+    var v = x.value;
+    if (!v || x.__zh_value === v) return;
+    if (/^[\w-]+:\S/.test(v)) { x.__zh_value = v; return; } // reason:assign 这类查询保持英文
+    var t = translateString(v, false);
+    if (t && t !== v) { x.__zh_value = t; if (BTN_TYPE[ty]) x.setAttribute('value', t); x.value = t; } else x.__zh_value = v;
+  }
+  var TIME_TAG = { 'RELATIVE-TIME': 1, 'TIME-AGO': 1, 'LOCAL-TIME': 1 };
+  function zhTime(x) { if (x.getAttribute('lang') !== 'zh-CN') { x.setAttribute('lang', 'zh-CN'); if (x.getAttribute('prefix') == null) x.setAttribute('prefix', ''); } }
   function accept(x) {
     if (x.nodeType === 3) return HAS_ALPHA.test(x.nodeValue) ? 1 : 3;
     var tg = x.tagName;
-    if (tg === 'RELATIVE-TIME' || tg === 'TIME-AGO' || tg === 'LOCAL-TIME') {
-      if (x.getAttribute('lang') !== 'zh-CN') { x.setAttribute('lang', 'zh-CN'); if (x.getAttribute('prefix') == null) x.setAttribute('prefix', ''); }
-      return 2;
-    }
+    if (TIME_TAG[tg]) { zhTime(x); return 2; }
     if (isSkip(x)) {
-      if ((tg === 'INPUT' || tg === 'TEXTAREA') && x.hasAttribute('placeholder')) doAttrs(x, true);
+      var rt = x.getElementsByTagName('relative-time'); // 跳过区（如文件列表的提交链接）里的时间也要本地化
+      for (var i = 0; i < rt.length; i++) zhTime(rt[i]);
+      if (tg === 'INPUT' || tg === 'TEXTAREA') doInput(x);
       return 2;
     }
     if (x.hidden) return 2;
@@ -196,23 +257,26 @@
   }
 
   // ---------- 分片队列：4 ms 时间片，滚动/触摸期间暂停 ----------
-  var queue = [], qi = 0, scheduled = false, walker = null, busyUntil = 0;
+  var queue = [], qi = 0, scheduled = false, walker = null, busyUntil = 0, urgentUntil = 0, URGENT_BUDGET = 30, SYNC_BUDGET = 12;
+  function urgentFor(ms) { var u = now() + ms; if (u > urgentUntil) urgentUntil = u; }
   var hasRIC = typeof window.requestIdleCallback === 'function';
   function now() { return Date.now(); }
   function schedule(delay) {
     if (scheduled) return; scheduled = true;
     if (delay) setTimeout(function () { scheduled = false; schedule(); }, delay);
+    else if (now() < urgentUntil) setTimeout(run, 0);
     else if (hasRIC) window.requestIdleCallback(run, { timeout: 1000 });
     else setTimeout(run, 16);
   }
-  function enqueue(n) { if (n && !n.__zq) { n.__zq = 1; queue.push(n); } }
-  function run(dl) {
+  function enqueue(n) { if (n && n.nodeType === 1 && TIME_TAG[n.tagName]) zhTime(n); if (n && !n.__zq) { n.__zq = 1; queue.push(n); } }
+  function run(dl, syncLim) {
     scheduled = false;
     var t0 = now();
-    if (t0 < busyUntil) { schedule(busyUntil - t0 + 30); return; }
-    var lim = BUDGET;
-    if (dl && dl.timeRemaining) { var tr = dl.timeRemaining(); if (tr < lim) lim = tr < 1 ? 1 : tr; }
-    var budget = CHUNK, n;
+    var urgent = t0 < urgentUntil || syncLim !== undefined;
+    if (!urgent && t0 < busyUntil) { schedule(busyUntil - t0 + 30); return; }
+    var lim = syncLim === 0 ? 1e9 : syncLim || (urgent ? URGENT_BUDGET : BUDGET);
+    if (!urgent && dl && dl.timeRemaining) { var tr = dl.timeRemaining(); if (tr < lim) lim = tr < 1 ? 1 : tr; }
+    var budget = urgent ? 100000 : CHUNK, n;
     while (budget > 0 && now() - t0 < lim) {
       if (walker) {
         while (budget > 0 && (n = walker.nextNode())) { budget--; if (n.nodeType === 3) doText(n, true); else doAttrs(n, false); }
@@ -223,6 +287,7 @@
       n = queue[qi++]; n.__zq = 0; budget--;
       if (!n.isConnected) continue;
       if (n.nodeType === 3) { doText(n, false); continue; }
+      if (n.nodeType === 1 && (n.tagName === 'INPUT' || n.tagName === 'TEXTAREA') && !n.parentNode.closest('[contenteditable]')) { doInput(n); continue; }
       if (n.nodeType !== 1 || n.hidden || inSkip(n)) continue;
       if (n.hasAttribute('aria-label') || n.hasAttribute('title') || n.hasAttribute('placeholder')) doAttrs(n, false);
       if (!n.firstChild) continue;
@@ -235,11 +300,17 @@
   // ---------- MutationObserver：只观察 childList + 文本；只入队 + 防抖；跳过区域内的变动直接丢弃 ----------
   var pending = [], debT = 0;
   var mo = new MutationObserver(function (recs) {
+    if (bannerWatch) killBanner();
     pending.push(recs);
-    if (!debT) debT = setTimeout(drain, 100);
+    // 在 MutationObserver 回调（微任务，先于绘制）里同步翻译新增节点：首屏解析期间不限量，其后每批限 SYNC_BUDGET ms，剩余交给空闲分片
+    if (debT) { clearTimeout(debT); debT = 0; }
+    drain();
+    if (qi < queue.length || walker) { scheduled = false; run(null, now() < urgentUntil ? 0 : SYNC_BUDGET); }
+    if (hideEl && foldDone()) reveal(); // 首屏已翻译即显示
   });
   function drain() {
     debT = 0;
+    if (!pageTried && document.body) loadPage();
     var batches = pending; pending = [];
     for (var b = 0; b < batches.length; b++) {
       var recs = batches[b];
@@ -258,7 +329,7 @@
 
   // ---------- 页面类型检测（移植自上游 detectPageType） ----------
   var reP = new RegExp(CONF.p), reR = new RegExp(CONF.r), reO = new RegExp(CONF.o);
-  function has(t) { return PAGES.indexOf(t) !== -1; }
+  function has(t) { return !!t; } // 无对应词库的页面类型：404 结果缓存为空词库
   function detect() {
     var host = location.hostname, path = location.pathname, b = document.body, m;
     if (host === 'gist.github.com') return 'gist';
@@ -272,7 +343,12 @@
     if (/\/<user-name>\/<repo-name>/.test(meta)) { m = path.match(reR); return m ? 'repository/' + m[1] : 'repository'; }
     if (/\/<org-login>/.test(meta) || /^\/(?:orgs|organizations)/.test(path)) { m = path.match(reO); return m ? 'orgs/' + (m[1] || m[m.length - 1]) : 'orgs'; }
     m = path.match(reP);
-    return m ? (m[1] || m[m.length - 1]) : '';
+    if (m) return m[1] || m[m.length - 1];
+    // 元信息缺失或尚未更新（流式解析/软导航）时按网址推断：/owner/repo/... → 仓库，/user → 个人主页
+    var seg = path.split('/');
+    if (seg.length >= 3 && seg[1] && seg[2] && !/^(orgs|organizations|settings|users|marketplace|apps|features|topics|collections|sponsors|login|logout|signup|search|notifications|explore|trending|enterprises)$/.test(seg[1])) { m = path.match(reR); return m ? 'repository/' + m[1] : 'repository'; }
+    if (seg.length === 2 && seg[1]) return 'page-profile';
+    return '';
   }
   // ---------- 词库加载：内存缓存 → localStorage → 网络 ----------
   var MEM = {};
@@ -282,7 +358,7 @@
     if (LS) try { raw = LS.getItem(key); } catch (e) {}
     if (raw) { try { d = JSON.parse(raw); MEM[name] = d; cb(d); return; } catch (e) {} }
     try {
-      fetch(DICT_URL + name.replace(/\//g, '__') + '.json?v=' + VER, { cache: 'force-cache' }).then(function (r) { if (!r.ok) throw 0; return r.text(); }).then(function (txt) {
+      fetch(DICT_URL + name.replace(/\//g, '__') + '.json?v=' + VER, { cache: 'force-cache' }).then(function (r) { if (r.status === 404) return '{}'; if (!r.ok) throw 0; return r.text(); }).then(function (txt) {
         d = JSON.parse(txt); MEM[name] = d;
         if (LS) { try { pruneLS(); LS.setItem(key, txt); } catch (e) {} }
         cb(d);
@@ -294,27 +370,42 @@
     for (var i = LS.length - 1; i >= 0; i--) { var k = LS.key(i); if (k && k.indexOf('gzl:') === 0 && k.indexOf('gzl:' + VER + ':') !== 0) LS.removeItem(k); }
   }
   function setPage(type, d) {
-    page = { type: type, s: d.s || {}, t: d.t || {}, rules: d.__c || (d.__c = compile(d.r || [], 30)) };
+    page = { type: type, s: d.s || {}, t: d.t || {}, x: d.x || null, rules: d.__c || (d.__c = compile(d.r || [], 30)) };
     gen++; memo = {}; memoN = 0;
     enqueue(document.body); schedule();
   }
-  var loadingType = null, commonReady = false;
+  var loadingType = null, commonReady = false, pageTried = false;
+  function loadCommon() {
+    if (commonReady || loadCommon.busy) return; loadCommon.busy = 1;
+    getDict('_common', function (d) { commonReady = true; if (d) { if (!d.t) d.t = {}; if (!d.r) d.r = []; if (!d.s) d.s = {}; COMMON = d; commonRules = null; gen++; memo = {}; memoN = 0; if (document.body) { enqueue(document.body); schedule(); } } });
+  }
   function loadPage() {
-    if (!commonReady) {
-      getDict('_common', function (d) { commonReady = true; if (d) { COMMON = d; commonRules = null; } loadPage(); });
-      return;
-    }
+    loadCommon(); // 缓存命中时同步完成；冷启动时与页面词库并行下载
+    if (!document.body) return;
+    pageTried = true;
     var type = detect();
     if (!has(type)) type = '';
     if (type === page.type) { enqueue(document.body); schedule(); return; }
     if (type === loadingType) return;
     if (!type) { setPage('', {}); return; }
     loadingType = type;
-    var sync = true, got = false;
+    var got = false;
     getDict(type, function (d) { got = true; if (loadingType !== type) return; loadingType = null; setPage(type, d || {}); });
-    sync = false;
-    // 网络加载期间先用公共词库翻译
     if (!got) { page = { type: '', s: {}, t: {}, rules: { lit: [], any: [] } }; enqueue(document.body); schedule(); }
+  }
+  // 页面类型与已加载词库不符（检测过早）时重新加载
+  function recheck() { if (!document.body || loadingType) return; var t = detect(); if (!has(t)) t = ''; if (t !== page.type) loadPage(); }
+  // 空闲时预取常用页面词库（只存 localStorage，不解析）
+  function prefetch() {
+    if (!LS || !window.fetch) return;
+    var names = ['repository', 'repository/issues', 'repository/pulls', 'repository/pull', 'repository/blob', 'repository/tree'], i = 0;
+    (function next() {
+      if (i >= names.length) return;
+      var n = names[i++], key = 'gzl:' + VER + ':' + n;
+      try { if (LS.getItem(key) !== null) return next(); } catch (e) { return; }
+      fetch(DICT_URL + n.replace(/\//g, '__') + '.json?v=' + VER, { cache: 'force-cache' }).then(function (r) { if (!r.ok) throw 0; return r.text(); })
+        .then(function (txt) { try { pruneLS(); LS.setItem(key, txt); } catch (e) {} setTimeout(next, 500); })['catch'](function () {});
+    })();
   }
 
   // ---------- 标题 ----------
@@ -332,19 +423,70 @@
 
   // ---------- 启动与导航 ----------
   var MO_OPT = { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'open'] };
-  function observe() { mo.disconnect(); mo.observe(document.body, MO_OPT); mo.__b = document.body; }
+  var lastBody = null;
+  function observe() { mo.disconnect(); mo.observe(document.documentElement, MO_OPT); }
+  // ---------- Safari 智能横幅：移除 <meta name="apple-itunes-app"> ----------
+  var bannerWatch = true;
+  function killBanner() {
+    var m = document.querySelectorAll('meta[name="apple-itunes-app"]');
+    for (var i = 0; i < m.length; i++) if (m[i].parentNode) m[i].parentNode.removeChild(m[i]);
+  }
+  // ---------- 防英文闪烁：有缓存词库时，首屏翻译完成前隐藏页面，最多 300 ms ----------
+  var hideEl = null, hideT = 0;
+  var HIDE_MODE = 'vis', HIDE_DEFER = true, HIDE_MAX = 300; // 实测：visibility 隐藏 + 显示前推迟正则 综合最佳
+  function hasCache() { if (!LS) return false; try { return LS.getItem('gzl:' + VER + ':_common') !== null; } catch (e) { return false; } }
+  // 显示策略：首屏（视口内）内容处理完即显示；硬超时 300 ms
+  var FOLD_T = 0;
+  function hide() {
+    if (!hasCache()) return; // 首次（无缓存）访问不隐藏
+    deferRules = HIDE_DEFER;
+    hideEl = document.createElement('style'); hideEl.id = 'gzl-hide';
+    hideEl.textContent = HIDE_MODE === 'color' ? 'body,body *{color:transparent!important;text-shadow:none!important}' : 'html{visibility:hidden!important}';
+    (document.head || document.documentElement).appendChild(hideEl);
+    hideT = setTimeout(reveal, HIDE_MAX);
+  }
+  // 解析已越过首屏：body 最深的最后一个元素已在视口下方
+  function foldDone() {
+    var b = document.body; if (!b) return false;
+    var t = now(); if (t - FOLD_T < 25) return false; FOLD_T = t;
+    var e = b.lastElementChild, d = 0;
+    while (e && e.lastElementChild && d++ < 12) e = e.lastElementChild;
+    for (var i = 0; e && i < 8; i++, e = e.previousElementSibling || e.parentElement) {
+      if (e === b) break;
+      var r = e.getBoundingClientRect();
+      if (r.height || r.width) return r.top > innerHeight;
+    }
+    return false;
+  }
+  function reveal() {
+    clearTimeout(hideT);
+    if (hideEl) { if (hideEl.parentNode) hideEl.parentNode.removeChild(hideEl); hideEl = null; }
+    if (deferRules) { deferRules = false; var l = later; later = []; for (var i = 0; i < l.length; i++) { var n = l[i]; if (n.nodeType === 3) n.__zg = 0; enqueue(n); } urgentFor(300); schedule(); }
+  }
   function start() {
-    if (!document.body) return setTimeout(start, 50);
+    if (!document.documentElement) return setTimeout(start, 10);
+    killBanner(); hide();
+    urgentFor(60000); // 直到 DOMContentLoaded 后再缩短
     observe();
-    loadPage();
+    loadCommon(); // document-start：同步读取缓存的公共词库
+    if (document.body) loadPage();
+    function ready() {
+      killBanner(); setTimeout(function () { killBanner(); bannerWatch = false; }, 3000);
+      urgentUntil = 0; urgentFor(800);
+      if (!pageTried) loadPage(); else { recheck(); enqueue(document.body); }
+      scheduled = false; run(null, 0); // 同步完成首轮全量扫描，再显示页面
+      reveal();
+      lastBody = document.body;
+      setTimeout(function () { (window.requestIdleCallback || setTimeout)(prefetch, 3000); }, 4000);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready, false); else ready();
     var navT = 0, lastHref = location.href;
     function onNav() {
       var ev = arguments[0];
-      if (location.href === lastHref && document.body === mo.__b && !(ev && ev.type === 'pageshow' && ev.persisted)) return; // 未导航：不重扫
+      if (location.href === lastHref && document.body === lastBody && !(ev && ev.type === 'pageshow' && ev.persisted)) { recheck(); return; } // 未导航：不重扫，但复核页面类型（元信息可能刚更新）
       clearTimeout(navT);
       navT = setTimeout(function () {
-        if (document.body && mo.__b !== document.body) observe();
-        lastHref = location.href; loadPage();
+        lastBody = document.body; lastHref = location.href; urgentFor(1500); loadPage(); // 导航后的首轮不因滚动/触摸暂停
       }, 150);
     }
     var evs = ['turbo:load', 'turbo:render', 'pjax:end', 'soft-nav:end', 'soft-nav:react-done', 'popstate', 'pageshow'];

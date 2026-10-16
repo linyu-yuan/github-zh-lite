@@ -1,20 +1,14 @@
 // ==UserScript==
 // @name         GitHub 中文化（iPhone 轻量版）
 // @namespace    https://github.com/linyu-yuan/github-zh-lite
-// @description  为 iPhone Safari (Stay) 优化的 GitHub 界面中文化脚本：ES5、无 GM_ API、公共词库内联、页面词库按需加载并缓存、分片空闲翻译。词库来自 maboloshi/github-chinese。
-// @version      2.6.0
-// @author       linyu-yuan (基于 沙漠之子 maboloshi / 楼教主 52cik 的 github-chinese)
-// @copyright    2016-2021 楼教主 (https://github.com/52cik); 2021-present 沙漠之子 (https://github.com/maboloshi); 2026 linyu-yuan
+// @version      2.7.0
+// @description  GitHub 界面简体中文化，为 iPhone Safari 优化：整句翻译、页面词库按需加载并缓存、无英文闪烁。词库基于 maboloshi/github-chinese。
+// @author       linyu-yuan
 // @license      GPL-3.0
-// @homepageURL  https://github.com/linyu-yuan/github-zh-lite
-// @supportURL   https://github.com/linyu-yuan/github-zh-lite/issues
-// @downloadURL  https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/github-zh-lite.user.js
-// @updateURL    https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/github-zh-lite.user.js
 // @match        https://github.com/*
 // @match        https://gist.github.com/*
 // @run-at       document-start
 // @grant        none
-// @noframes
 // ==/UserScript==
 /*
  * 词库（COMMON 及 dict/*.json）由 maboloshi/github-chinese 的 locals.js 转换而来，
@@ -23,30 +17,41 @@
  */
 (function () {
   'use strict';
+  try { if (window.top !== window.self) return; } catch (e) { return; }
   if (window.__ghZhLite) return; window.__ghZhLite = 1;
-  var VER = '2.6.0';
+  var VER = '2.7.0';
   var DICT_URL = 'https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/dict/';
   var COMMON = { s: {}, r: [], t: {} };
-  var CONF = {"p":"^\\/($|home|dashboard|feed|copilot|spark|signup|account_verifications|login\\/oauth|login|logout|sessions?|password_reset|orgs|explore|topics|notifications\\/subscriptions|notifications|watching|stars|issues|pulls|repos|search|trending|showcases|new\\/(import|project)|new|import|settings\\/(profile|admin|appearance|accessibility|notifications|billing|emails|security_analysis|security-log|security|auth|sessions|keys|ssh|gpg|organizations|enterprises|blocked_users|interaction_limits|code_review_limits|repositories|codespaces|models|codespaces\\/allow_permissions|deleted_repositories|packages|copilot|pages|replies|installations|apps\\/authorizations|reminders|sponsors-log|apps|(?:personal-access-|)tokens|developers|applications\\/new|applications|connections\\/applications|education\\/benefits|credentials)|settings|installations\\/new|marketplace|apps|account\\/(organizations\\/new|choose|upgrade|billing\\/history)|projects|redeem|discussions|collections|sponsors|sponsoring|github-copilot\\/(signup|free_signup|code-review-waitlist|pro)|codespaces|developer\\/register|features|security|sitemap|education|mcp)|^\\/users\\/[^\\/]+\\/(projects|packages|succession\\/invitation)","r":"^\\/[^\\/]+\\/[^\\/]+\\/(issues|pulls|pull|tree|watchers|stargazers|new|edit|delete|upload|find|models|wiki|branches|discussions|activity|rules|releases|packages|tags|labels|milestones?|compare|commit|blob|blame|actions(\\/metrics\\/(usage|performance))?|runs|deployments|security|pulse|community|forks|fork|import|graphs\\/(contributors|community|traffic|commit-activity|code-frequency)|network$|network\\/(dependencies|dependents|updates|members)|settings\\/(access|code_review_limits|interaction_limits|branches|branch_protection_rules|tag_protection|rules|actions|models\\/access-policy|hooks|copilot\\/(code_review|coding_agent)|environments|codespaces|pages|security_analysis|dependabot_rules|keys|secrets|variables|installations|notifications|key_links)|settings|transfer|projects\\/new|projects|pkgs|contribute|subscription|invitations|codespaces|attestations|custom-properties|reported_content|agents|tasks)","o":"^\\/[^\\/]+\\/[^\\/]+\\/(repositories\\/new|repositories|sponsoring|discussions|projects|packages|teams|new-team|people|outside-collaborators|pending_collaborators|dashboard|billing_managers\\/new|invitations?|settings\\/(profile|billing|roles|member_privileges|teams|import-export|blocked_users|interaction_limits|code_review_limits|moderators|repository-defaults|rules|codespaces|copilot|actions|hooks|discussions|packages|pages|projects|security_analysis|security|dependabot_rules|domains|secrets|variables|oauth_application_policy|installations|personal-access-token|reminders|sponsors-log|audit-log|deleted_repositories|applications\\/new|applications|apps\\/new|apps|publisher|policies\\/repositories|custom-properties|issue-fields|sandboxes)|topics|domain\\/new|audit-log\\/event_settings|billing\\/(history|plans)|policies\\/applications)|^\\/[^\\/]+\\/(enterprise_plan|sponsoring)"};
-  var PAGES = ["orgs-public","page-dashboard","dashboard","feed","orgs/dashboard","page-profile-public","page-profile/achievements","page-profile/followers","page-profile/following","page-profile","page-profile/overview","page-profile/repositories","page-profile/projects","page-profile/sponsoring","page-profile/packages","page-profile/sponsors","page-profile/stars","confirm-access","payment-module","settings-menu","orgs-settings-menu","settings/profile","settings","settings/admin","succession/invitation","settings/appearance","settings/accessibility","settings/notifications","settings/billing","account/billing/history","orgs/settings/billing","orgs/billing_managers/new","orgs/billing/history","orgs/billing/plans","settings/education/benefits","settings/emails","settings/security","settings/auth","settings/sessions","settings/keys","settings/ssh","settings/gpg","settings/organizations","settings/enterprises","settings/blocked_users","settings/interaction_limits","settings/code_review_limits","settings/repositories","settings/deleted_repositories","settings/codespaces","settings/models","settings/packages","orgs/settings/packages","settings/copilot","settings/pages","orgs/settings/pages","settings/replies","settings/security_analysis","settings/installations","settings/apps/authorizations","settings/applications","settings/connections/applications","orgs/settings/installations","orgs/policies/applications","settings/reminders","settings/security-log","settings/sponsors-log","settings/apps","orgs/settings/apps/new","settings/developers","settings/applications/new","orgs/settings/applications/new","settings/personal-access-tokens","settings/tokens","settings/credentials","repository-public","page-new-repo","new","new/import","repository/import","repository/fork","orgs/repositories/new","repository","repository/tree","repository/milestones","repository/milestone","repository/pull_issue_public","repository/issues","repository/labels","repository/pulls","repository/pull","repository/compare","repository/commit","repository/blob","repository/blame","repository/discussions","repository/orgs/discussions","repository/actions","repository/runs","repository/deployments","repository/attestations","repository/watchers","repository/stargazers","repository/new","repository/edit","repository/delete","repository/upload","repository/find","repository/models","repository/wiki","repository/branches","repository/activity","repository/releases","repository/tags","repository/packages","repository/pkgs","packages","repository/security","repository/contribute","repository/subscription","repository/invitations","repository/tasks","repository-insights-menu","repository/pulse","repository/graphs/contributors","repository/graphs/community","repository/community","repository/graphs/traffic","repository/graphs/commit-activity","repository/graphs/code-frequency","repository/network/dependencies","repository/network/dependents","repository/network/updates","repository/network","repository/network/members","repository/forks","repository-settings-menu","repository/settings","repository/settings/access","repository/settings/interaction_limits","repository/settings/code_review_limits","repository/settings/branches","repository/settings/branch_protection_rules","repository/settings/tag_protection","repository/settings/rules","orgs/settings/rules","repository/rules","repository/settings/actions","repository/settings/models/access-policy","repository/settings/hooks","orgs/settings/hooks","repository/settings/copilot/code_review","repository/settings/copilot/coding_agent","repository/settings/environments","repository/settings/codespaces","repository/settings/pages","repository/settings/security_analysis","repository/settings/keys","repository/settings/secrets","repository/settings/variables","repository/settings/installations","repository/settings/notifications","repository/settings/key_links","repository/transfer","repository/codespaces","repository/custom-properties","homepage","home","session-authentication","login","logout","session","sessions","password_reset","signup","account_verifications","notifications","watching","notifications/subscriptions","stars","issues","pulls","repos","search","repository/search","discussions","gist","login/oauth","explore","topics","trending","collections","sponsors","showcases","account/organizations/new","account/choose","account/upgrade","marketplace","apps","orgs","orgs/repositories","orgs/projects","orgs/packages","orgs/people","orgs/outside-collaborators","orgs/pending_collaborators","orgs/teams","orgs/new-team","orgs/invitations","orgs/invitation","orgs/domain/new","orgs/settings/profile","orgs/settings/policies/repositories","orgs/settings/roles","orgs/settings/member_privileges","orgs/settings/teams","orgs/settings/import-export","orgs/settings/blocked_users","orgs/settings/interaction_limits","orgs/settings/code_review_limits","orgs/settings/moderators","orgs/settings/repository-defaults","orgs/topics","orgs/settings/codespaces","orgs/settings/sandboxes","orgs/settings/custom-properties","orgs/settings/issue-fields","orgs/settings/copilot","orgs/settings/actions","orgs/settings/discussions","orgs/settings/projects","orgs/settings/security","orgs/settings/security_analysis","orgs/settings/dependabot_rules","repository/settings/dependabot_rules","orgs/settings/domains","orgs/settings/secrets","orgs/settings/variables","orgs/settings/oauth_application_policy","orgs/settings/personal-access-token","orgs/settings/reminders","orgs/settings/sponsors-log","orgs/settings/audit-log","orgs/audit-log/event_settings","orgs/settings/deleted_repositories","orgs/settings/applications","orgs/settings/apps","orgs/settings/publisher","projects","new/project","repository/projects/new","repository/projects","redeem","github-copilot/signup","github-copilot/free_signup","github-copilot/pro","orgs/enterprise_plan","codespaces","codespaces/allow_permissions","developer/register","features","status","skills","orgs/sponsoring","organizations/plan","repo-actions-merics-public","repository/actions/metrics/usage","repository/actions/metrics/performance","copilot","github-copilot/code-review-waitlist","spark","sitemap","education","mcp","repository/agents"];
+  var CONF = {
+    p: "^\\/($|home|dashboard|feed|copilot|spark|signup|account_verifications|login\\/oauth|login|logout|sessions?|password_reset|orgs|explore|topics|notifications\\/subscriptions|notifications|watching|stars|issues|pulls|repos|search|trending|showcases|new\\/(import|project)|new|import|settings\\/(profile|" +
+      "admin|appearance|accessibility|notifications|billing|emails|security_analysis|security-log|security|auth|sessions|keys|ssh|gpg|organizations|enterprises|blocked_users|interaction_limits|code_review_limits|repositories|codespaces|models|codespaces\\/allow_permissions|deleted_repositories|packages|" +
+      "copilot|pages|replies|installations|apps\\/authorizations|reminders|sponsors-log|apps|(?:personal-access-|)tokens|developers|applications\\/new|applications|connections\\/applications|education\\/benefits|credentials)|settings|installations\\/new|marketplace|apps|account\\/(organizations\\/new|choose|" +
+      "upgrade|billing\\/history)|projects|redeem|discussions|collections|sponsors|sponsoring|github-copilot\\/(signup|free_signup|code-review-waitlist|pro)|codespaces|developer\\/register|features|security|sitemap|education|mcp)|^\\/users\\/[^\\/]+\\/(projects|packages|succession\\/invitation)",
+    r: "^\\/[^\\/]+\\/[^\\/]+\\/(issues|pulls|pull|tree|watchers|stargazers|new|edit|delete|upload|find|models|wiki|branches|discussions|activity|rules|releases|packages|tags|labels|milestones?|compare|commit|blob|blame|actions(\\/metrics\\/(usage|performance))?|runs|deployments|security|pulse|community|forks|" +
+      "fork|import|graphs\\/(contributors|community|traffic|commit-activity|code-frequency)|network$|network\\/(dependencies|dependents|updates|members)|settings\\/(access|code_review_limits|interaction_limits|branches|branch_protection_rules|tag_protection|rules|actions|models\\/access-policy|hooks|" +
+      "copilot\\/(code_review|coding_agent)|environments|codespaces|pages|security_analysis|dependabot_rules|keys|secrets|variables|installations|notifications|key_links)|settings|transfer|projects\\/new|projects|pkgs|contribute|subscription|invitations|codespaces|attestations|custom-properties|" +
+      "reported_content|agents|tasks)",
+    o: "^\\/[^\\/]+\\/[^\\/]+\\/(repositories\\/new|repositories|sponsoring|discussions|projects|packages|teams|new-team|people|outside-collaborators|pending_collaborators|dashboard|billing_managers\\/new|invitations?|settings\\/(profile|billing|roles|member_privileges|teams|import-export|blocked_users|" +
+      "interaction_limits|code_review_limits|moderators|repository-defaults|rules|codespaces|copilot|actions|hooks|discussions|packages|pages|projects|security_analysis|security|dependabot_rules|domains|secrets|variables|oauth_application_policy|installations|personal-access-token|reminders|sponsors-log|" +
+      "audit-log|deleted_repositories|applications\\/new|applications|apps\\/new|apps|publisher|policies\\/repositories|custom-properties|issue-fields|sandboxes)|topics|domain\\/new|audit-log\\/event_settings|billing\\/(history|plans)|policies\\/applications)|^\\/[^\\/]+\\/(enterprise_plan|sponsoring)"
+  };
+  if (window.__gzlDebug) window.__gzlDbg = { inSkip: function (e) { return inSkip(e); }, tr: function (s) { return translateString(s); } };
   var LS = (function () { try { var k = '__gzl_t'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return localStorage; } catch (e) { return null; } })();
   var hasOwn = Object.prototype.hasOwnProperty;
   var HAS_DIGIT = /\d/, HAS_ALPHA = /[A-Za-z]/, ALPHA2 = /[A-Za-z]{2}/, HAS_CJK = /[\u4e00-\u9fa5]/;
   var CHUNK = 50, BUDGET = 4;
 
-  // ---------- 规则编译：按必需字面量预筛 ----------
   function compile(list, cap) {
     var withLit = [], noLit = [];
     for (var i = 0; i < list.length; i++) {
       var r = list[i], re;
-      try { re = new RegExp(r[0], r[3] || ''); } catch (e) { continue; }
+      try { re = new RegExp('^(?:' + r[0] + ')$', r[3] || ''); } catch (e) { continue; }
       if (r[2]) withLit.push([re, r[1], r[2]]); else if (noLit.length < cap) noLit.push([re, r[1]]);
     }
     return { lit: withLit, any: noLit };
   }
   var commonRules = null, page = { type: '', s: {}, t: {}, rules: { lit: [], any: [] } }, gen = 1, memo = {}, memoN = 0;
 
-  // ---------- 移植的上游函数规则：日期 / 相对时间 ----------
   var MON = { Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6, Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12 };
   var WEEK = { Sun: '周日', Mon: '周一', Tue: '周二', Wed: '周三', Thu: '周四', Fri: '周五', Sat: '周六' };
   var PREFIX = { 'Updated ': '更新于 ', 'Updated on ': '更新于 ', 'Commits on ': '提交于 ', 'Joined on ': '加入于 ', 'on ': '', 'Created ': '创建于 ', 'Last updated ': '最后更新于 ' };
@@ -85,13 +90,12 @@
     for (i = 0; i < rs.any.length; i++) { r = rs.any[i]; if (r[0].test(k)) return k.replace(r[0], r[1]); }
     return null;
   }
-  // 返回 [译文|null, 是否属于“精确未命中”]
   var DEFER = {}, deferRules = false, later = [];
   function lookup(k) {
     if (hasOwn.call(page.s, k)) return page.s[k];
     if (hasOwn.call(COMMON.s, k)) return COMMON.s[k];
     if (hasOwn.call(memo, k)) return memo[k];
-    if (deferRules) return DEFER; // 显示前只做精确查表，正则留到显示后
+    if (deferRules) return DEFER;
     var res = builtin(k);
     if (res == null && k.length < 200) {
       res = runRules(page.rules, k);
@@ -115,7 +119,6 @@
     return /^\s*/.exec(s)[0] + t + /\s*$/.exec(s)[0];
   }
 
-  // ---------- 跳过区域（快速分类器，结果缓存在元素上，代替大选择器 matches/closest） ----------
   function set(a) { var o = {}; for (var i = 0; i < a.length; i++) o[a[i]] = 1; return o; }
   var SKIP_TAG = set(['PRE', 'CODE', 'KBD', 'SAMP', 'TEXTAREA', 'INPUT', 'SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'svg', 'SVG', 'MATH', 'math', 'IFRAME', 'CANVAS', 'VIDEO']);
   var SKIP_CLASS = set(['markdown-body', 'comment-body', 'js-comment-body', 'blob-code', 'blob-wrapper', 'react-code-text', 'react-code-lines', 'react-blob-print-hide',
@@ -126,7 +129,6 @@
   var SKIP_CLASS_SUB = ['contextCrumb', 'Breadcrumbs-Item', 'IssueTitle', 'markdownBody'];
   var SKIP_ITEMPROP = set(['name', 'description', 'about', 'programmingLanguage']);
   var SKIP_TESTID = set(['markdown-body', 'issue-title', 'issue-pr-title-link', 'author-filter-link', 'issue-body']);
-  // 指向用户内容的链接（提交、分支/文件、Wiki 页、发行版、工作流运行、话题）
   var SKIP_HREF = ['/topics/', '/commit/', '/tree/', '/blob/', '/wiki/', '/releases/tag/', '/actions/runs/', '/actions/workflows/'];
   var DESC_TAG = set(['H1', 'H2', 'H3', 'P', 'BDI', 'EM']);
   var DESC_SEL = 'h1 bdi,article h1,article h3,article p,.Box-row h2,.Box-row p,[data-testid="results-list"] h3,[data-testid="results-list"] [class*="Text"] em';
@@ -151,7 +153,6 @@
   }
   function descSkip(x) { try { return x.matches(DESC_SEL) ? 1 : 0; } catch (e) { return 0; } }
   function isSkip(x) { var c = x.__zs; if (c === undefined) c = x.__zs = classify(x); return c === 1; }
-  // 等价于 closest(SKIP)：沿祖先向上，命中缓存即停
   function inSkip(el) {
     for (var e = el; e && e.nodeType === 1; e = e.parentNode) {
       var a = e.__za; if (a !== undefined) return a === 1;
@@ -161,7 +162,11 @@
   }
   var ATTRS = ['placeholder', 'aria-label', 'title'];
 
-  var HDR = {'Pull requests':'拉取请求','Issues':'议题','Notifications':'通知','Dashboard':'仪表板','Explore':'探索','Marketplace':'市场','Codespaces':'代码空间','Settings':'设置','Repositories':'仓库','Projects':'项目','Stars':'星标','Gists':'代码片段','Organizations':'组织','Sponsors':'赞助','Discussions':'讨论','Your repositories':'您的仓库','Your stars':'您的星标','Your projects':'您的项目','Trending':'趋势','Topics':'主题','Collections':'集合','Search':'搜索','New repository':'新建仓库','Import repository':'导入仓库','Copilot':'Copilot'};
+  var HDR = {
+    'Pull requests':'拉取请求','Issues':'议题','Notifications':'通知','Dashboard':'仪表板','Explore':'探索','Marketplace':'市场','Codespaces':'代码空间','Settings':'设置','Repositories':'仓库','Projects':'项目','Stars':'星标',
+    'Gists':'代码片段','Organizations':'组织','Sponsors':'赞助','Discussions':'讨论','Your repositories':'您的仓库','Your stars':'您的星标','Your projects':'您的项目','Trending':'趋势','Topics':'主题','Collections':'集合',
+    'Search':'搜索','New repository':'新建仓库','Import repository':'导入仓库','Copilot':'Copilot'
+  };
   function doText(node, checked) {
     var v = node.nodeValue;
     if (node.__zh === v && node.__zg === gen) return;
@@ -169,16 +174,38 @@
     if (!checked) { var p = node.parentNode; if (!p || p.nodeType !== 1 || inSkip(p)) { var hz = HDR[v.replace(/^\s+|\s+$/g, '')]; if (hz && p && p.closest && p.closest('.AppHeader-context-item-label, .AppHeader-context')) { node.__zh = node.nodeValue = v.replace(/\S[\s\S]*\S|\S/, hz); } else node.__zh = v; return; } }
     if (HAS_CJK.test(v) && !ALPHA2.test(v)) { node.__zh = v; return; }
     var pp = node.parentNode;
-    if (pp && pp.tagName === 'OPTION' && pp.getAttribute('value') && pp.parentNode && pp.parentNode.options && pp.parentNode.options.length > 30) { node.__zh = v; return; } // 语言/时区等长列表保持原文
+    if (pp && pp.tagName === 'OPTION' && pp.getAttribute('value') && pp.parentNode && pp.parentNode.options && pp.parentNode.options.length > 30) { node.__zh = v; return; }
     var t = translateString(v, true);
     if (t === DEFER) { later.push(node); return; }
+    if (t == null && tpl(node)) return;
     if (t != null && t !== v) {
       var po = node.parentNode;
-      if (po && po.tagName === 'OPTION' && !po.hasAttribute('value')) po.setAttribute('value', po.value); // 保持提交值不变
+      if (po && po.tagName === 'OPTION' && !po.hasAttribute('value')) po.setAttribute('value', po.value);
       node.__zh = t; node.nodeValue = t;
-      var ps = node.previousSibling; // “查看全部 ” + “分支” → “查看全部分支”
+      var ps = node.previousSibling;
       if (ps && ps.nodeType === 3 && /[\u4e00-\u9fa5]\s+$/.test(ps.nodeValue) && /^\s*[\u4e00-\u9fa5]/.test(t)) { ps.__zh = ps.nodeValue = ps.nodeValue.replace(/\s+$/, ''); }
     } else node.__zh = v;
+  }
+  function tpl(node) {
+    var p = node.parentNode, cs, i, k = '', n = 0, c;
+    if (!p || p.__zx === gen || !p.firstElementChild || (!page.x && !COMMON.x)) return false;
+    p.__zx = gen; cs = p.childNodes;
+    if (cs.length > 12) return false;
+    for (i = 0; i < cs.length; i++) { c = cs[i]; if (c.nodeType === 3) k += c.nodeValue; else if (c.nodeType === 1) k += '{' + n++ + '}'; }
+    k = k.replace(/\s+/g, ' ').trim();
+    if (k.length > 600 || !n) return false;
+    var z = (page.x && page.x[k]) || (COMMON.x && COMMON.x[k]);
+    if (!z) return false;
+    var seg = z.split(/\{\d+\}/), arr = [], gaps = [[]], el = [];
+    if (seg.length !== n + 1) return false;
+    for (i = 0; i < cs.length; i++) arr.push(cs[i]);
+    for (i = 0; i < arr.length; i++) { c = arr[i]; if (c.nodeType === 1) { el.push(c); gaps.push([]); } else if (c.nodeType === 3) gaps[gaps.length - 1].push(c); }
+    for (i = 0; i <= n; i++) {
+      var g = gaps[i], tx = seg[i];
+      if (!g.length) { if (tx) { c = document.createTextNode(tx); c.__zh = tx; c.__zg = gen; p.insertBefore(c, i < n ? el[i] : null); } continue; }
+      for (var j = 0; j < g.length; j++) { g[j].__zh = g[j].nodeValue = j ? '' : tx; g[j].__zg = gen; }
+    }
+    return true;
   }
   function doAttrs(el, skipped) {
     for (var i = 0; i < ATTRS.length; i++) {
@@ -194,7 +221,6 @@
     }
     el.__zga = gen;
   }
-  // 输入框：只翻 placeholder；按钮型 input 的 value；只读展示框的 value。绝不改用户可编辑的值
   var BTN_TYPE = { submit: 1, button: 1, reset: 1 };
   function doInput(x) {
     if (x.hasAttribute('placeholder')) doAttrs(x, true);
@@ -202,7 +228,7 @@
     if (!(x.tagName === 'INPUT' && BTN_TYPE[ty]) && !(x.readOnly && !x.isContentEditable)) return;
     var v = x.value;
     if (!v || x.__zh_value === v) return;
-    if (/^[\w-]+:\S/.test(v)) { x.__zh_value = v; return; } // reason:assign 这类查询保持英文
+    if (/^[\w-]+:\S/.test(v)) { x.__zh_value = v; return; }
     var t = translateString(v, false);
     if (t && t !== v) { x.__zh_value = t; if (BTN_TYPE[ty]) x.setAttribute('value', t); x.value = t; } else x.__zh_value = v;
   }
@@ -213,7 +239,7 @@
     var tg = x.tagName;
     if (TIME_TAG[tg]) { zhTime(x); return 2; }
     if (isSkip(x)) {
-      var rt = x.getElementsByTagName('relative-time'); // 跳过区（如文件列表的提交链接）里的时间也要本地化
+      var rt = x.getElementsByTagName('relative-time');
       for (var i = 0; i < rt.length; i++) zhTime(rt[i]);
       if (tg === 'INPUT' || tg === 'TEXTAREA') doInput(x);
       return 2;
@@ -222,7 +248,6 @@
     return (x.hasAttribute('aria-label') || x.hasAttribute('title') || x.hasAttribute('placeholder')) ? 1 : 3;
   }
 
-  // ---------- 分片队列：4 ms 时间片，滚动/触摸期间暂停 ----------
   var queue = [], qi = 0, scheduled = false, walker = null, busyUntil = 0, urgentUntil = 0, URGENT_BUDGET = 30, SYNC_BUDGET = 12;
   function urgentFor(ms) { var u = now() + ms; if (u > urgentUntil) urgentUntil = u; }
   var hasRIC = typeof window.requestIdleCallback === 'function';
@@ -263,16 +288,14 @@
   }
   function onBusy() { busyUntil = now() + 200; }
 
-  // ---------- MutationObserver：只观察 childList + 文本；只入队 + 防抖；跳过区域内的变动直接丢弃 ----------
   var pending = [], debT = 0;
   var mo = new MutationObserver(function (recs) {
     if (bannerWatch) killBanner();
     pending.push(recs);
-    // 在 MutationObserver 回调（微任务，先于绘制）里同步翻译新增节点：首屏解析期间不限量，其后每批限 SYNC_BUDGET ms，剩余交给空闲分片
     if (debT) { clearTimeout(debT); debT = 0; }
     drain();
     if (qi < queue.length || walker) { scheduled = false; run(null, now() < urgentUntil ? 0 : SYNC_BUDGET); }
-    if (hideEl && foldDone()) reveal(); // 首屏已翻译即显示
+    if (hideEl && foldDone()) reveal();
   });
   function drain() {
     debT = 0;
@@ -287,15 +310,14 @@
           for (var j = 0; j < r.addedNodes.length; j++) { var a = r.addedNodes[j]; if (a.nodeType === 1 || (a.nodeType === 3 && HAS_ALPHA.test(a.nodeValue))) enqueue(a); }
         } else if (r.type === 'characterData') {
           if (tg.__zh !== tg.nodeValue && HAS_ALPHA.test(tg.nodeValue)) enqueue(tg);
-        } else if (!tg.hidden && !inSkip(tg)) enqueue(tg); // hidden / open 变化：展开时补译
+        } else if (!tg.hidden && !inSkip(tg)) enqueue(tg);
       }
     }
     if (qi < queue.length) schedule();
   }
 
-  // ---------- 页面类型检测（移植自上游 detectPageType） ----------
   var reP = new RegExp(CONF.p), reR = new RegExp(CONF.r), reO = new RegExp(CONF.o);
-  function has(t) { return PAGES.indexOf(t) !== -1; }
+  function has(t) { return !!t; }
   function detect() {
     var host = location.hostname, path = location.pathname, b = document.body, m;
     if (host === 'gist.github.com') return 'gist';
@@ -310,13 +332,11 @@
     if (/\/<org-login>/.test(meta) || /^\/(?:orgs|organizations)/.test(path)) { m = path.match(reO); return m ? 'orgs/' + (m[1] || m[m.length - 1]) : 'orgs'; }
     m = path.match(reP);
     if (m) return m[1] || m[m.length - 1];
-    // 元信息缺失或尚未更新（流式解析/软导航）时按网址推断：/owner/repo/... → 仓库，/user → 个人主页
     var seg = path.split('/');
     if (seg.length >= 3 && seg[1] && seg[2] && !/^(orgs|organizations|settings|users|marketplace|apps|features|topics|collections|sponsors|login|logout|signup|search|notifications|explore|trending|enterprises)$/.test(seg[1])) { m = path.match(reR); return m ? 'repository/' + m[1] : 'repository'; }
     if (seg.length === 2 && seg[1]) return 'page-profile';
     return '';
   }
-  // ---------- 词库加载：内存缓存 → localStorage → 网络 ----------
   var MEM = {};
   function getDict(name, cb) {
     if (MEM[name]) { cb(MEM[name]); return; }
@@ -324,7 +344,7 @@
     if (LS) try { raw = LS.getItem(key); } catch (e) {}
     if (raw) { try { d = JSON.parse(raw); MEM[name] = d; cb(d); return; } catch (e) {} }
     try {
-      fetch(DICT_URL + name.replace(/\//g, '__') + '.json?v=' + VER, { cache: 'force-cache' }).then(function (r) { if (!r.ok) throw 0; return r.text(); }).then(function (txt) {
+      fetch(DICT_URL + name.replace(/\//g, '__') + '.json?v=' + VER, { cache: 'force-cache' }).then(function (r) { if (r.status === 404) return '{}'; if (!r.ok) throw 0; return r.text(); }).then(function (txt) {
         d = JSON.parse(txt); MEM[name] = d;
         if (LS) { try { pruneLS(); LS.setItem(key, txt); } catch (e) {} }
         cb(d);
@@ -336,7 +356,7 @@
     for (var i = LS.length - 1; i >= 0; i--) { var k = LS.key(i); if (k && k.indexOf('gzl:') === 0 && k.indexOf('gzl:' + VER + ':') !== 0) LS.removeItem(k); }
   }
   function setPage(type, d) {
-    page = { type: type, s: d.s || {}, t: d.t || {}, rules: d.__c || (d.__c = compile(d.r || [], 30)) };
+    page = { type: type, s: d.s || {}, t: d.t || {}, x: d.x || null, rules: d.__c || (d.__c = compile(d.r || [], 30)) };
     gen++; memo = {}; memoN = 0;
     enqueue(document.body); schedule();
   }
@@ -346,7 +366,7 @@
     getDict('_common', function (d) { commonReady = true; if (d) { if (!d.t) d.t = {}; if (!d.r) d.r = []; if (!d.s) d.s = {}; COMMON = d; commonRules = null; gen++; memo = {}; memoN = 0; if (document.body) { enqueue(document.body); schedule(); } } });
   }
   function loadPage() {
-    loadCommon(); // 缓存命中时同步完成；冷启动时与页面词库并行下载
+    loadCommon();
     if (!document.body) return;
     pageTried = true;
     var type = detect();
@@ -359,9 +379,7 @@
     getDict(type, function (d) { got = true; if (loadingType !== type) return; loadingType = null; setPage(type, d || {}); });
     if (!got) { page = { type: '', s: {}, t: {}, rules: { lit: [], any: [] } }; enqueue(document.body); schedule(); }
   }
-  // 页面类型与已加载词库不符（检测过早）时重新加载
   function recheck() { if (!document.body || loadingType) return; var t = detect(); if (!has(t)) t = ''; if (t !== page.type) loadPage(); }
-  // 空闲时预取常用页面词库（只存 localStorage，不解析）
   function prefetch() {
     if (!LS || !window.fetch) return;
     var names = ['repository', 'repository/issues', 'repository/pulls', 'repository/pull', 'repository/blob', 'repository/tree'], i = 0;
@@ -374,7 +392,6 @@
     })();
   }
 
-  // ---------- 标题 ----------
   var lastTitle = '';
   function flushTitle() {
     var t = document.title; if (t === lastTitle) return;
@@ -387,31 +404,26 @@
   function miss() {}
   if (LS) try { LS.removeItem('gzl:miss'); LS.removeItem('gzl:hidebtn'); } catch (e) {}
 
-  // ---------- 启动与导航 ----------
   var MO_OPT = { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'open'] };
   var lastBody = null;
   function observe() { mo.disconnect(); mo.observe(document.documentElement, MO_OPT); }
-  // ---------- Safari 智能横幅：移除 <meta name="apple-itunes-app"> ----------
   var bannerWatch = true;
   function killBanner() {
     var m = document.querySelectorAll('meta[name="apple-itunes-app"]');
     for (var i = 0; i < m.length; i++) if (m[i].parentNode) m[i].parentNode.removeChild(m[i]);
   }
-  // ---------- 防英文闪烁：有缓存词库时，首屏翻译完成前隐藏页面，最多 300 ms ----------
   var hideEl = null, hideT = 0;
-  var HIDE_MODE = 'vis', HIDE_DEFER = true, HIDE_MAX = 300; // 实测：visibility 隐藏 + 显示前推迟正则 综合最佳
+  var HIDE_MODE = 'vis', HIDE_DEFER = true, HIDE_MAX = 300;
   function hasCache() { if (!LS) return false; try { return LS.getItem('gzl:' + VER + ':_common') !== null; } catch (e) { return false; } }
-  // 显示策略：首屏（视口内）内容处理完即显示；硬超时 300 ms
   var FOLD_T = 0;
   function hide() {
-    if (!hasCache()) return; // 首次（无缓存）访问不隐藏
+    if (!hasCache()) return;
     deferRules = HIDE_DEFER;
     hideEl = document.createElement('style'); hideEl.id = 'gzl-hide';
     hideEl.textContent = HIDE_MODE === 'color' ? 'body,body *{color:transparent!important;text-shadow:none!important}' : 'html{visibility:hidden!important}';
     (document.head || document.documentElement).appendChild(hideEl);
     hideT = setTimeout(reveal, HIDE_MAX);
   }
-  // 解析已越过首屏：body 最深的最后一个元素已在视口下方
   function foldDone() {
     var b = document.body; if (!b) return false;
     var t = now(); if (t - FOLD_T < 25) return false; FOLD_T = t;
@@ -432,15 +444,15 @@
   function start() {
     if (!document.documentElement) return setTimeout(start, 10);
     killBanner(); hide();
-    urgentFor(60000); // 直到 DOMContentLoaded 后再缩短
+    urgentFor(60000);
     observe();
-    loadCommon(); // document-start：同步读取缓存的公共词库
+    loadCommon();
     if (document.body) loadPage();
     function ready() {
       killBanner(); setTimeout(function () { killBanner(); bannerWatch = false; }, 3000);
       urgentUntil = 0; urgentFor(800);
       if (!pageTried) loadPage(); else { recheck(); enqueue(document.body); }
-      scheduled = false; run(null, 0); // 同步完成首轮全量扫描，再显示页面
+      scheduled = false; run(null, 0);
       reveal();
       lastBody = document.body;
       setTimeout(function () { (window.requestIdleCallback || setTimeout)(prefetch, 3000); }, 4000);
@@ -449,15 +461,14 @@
     var navT = 0, lastHref = location.href;
     function onNav() {
       var ev = arguments[0];
-      if (location.href === lastHref && document.body === lastBody && !(ev && ev.type === 'pageshow' && ev.persisted)) { recheck(); return; } // 未导航：不重扫，但复核页面类型（元信息可能刚更新）
+      if (location.href === lastHref && document.body === lastBody && !(ev && ev.type === 'pageshow' && ev.persisted)) { recheck(); return; }
       clearTimeout(navT);
       navT = setTimeout(function () {
-        lastBody = document.body; lastHref = location.href; urgentFor(1500); loadPage(); // 导航后的首轮不因滚动/触摸暂停
+        lastBody = document.body; lastHref = location.href; urgentFor(1500); loadPage();
       }, 150);
     }
     var evs = ['turbo:load', 'turbo:render', 'pjax:end', 'soft-nav:end', 'soft-nav:react-done', 'popstate', 'pageshow'];
     for (var i = 0; i < evs.length; i++) { window.addEventListener(evs[i], onNav, false); document.addEventListener(evs[i], onNav, false); }
-    // React 路由用 pushState/replaceState：包装一次（替代 1 秒轮询）
     var H = window.history;
     ['pushState', 'replaceState'].forEach(function (m) {
       var orig = H[m]; if (typeof orig !== 'function' || orig.__gzl) return;
