@@ -12,7 +12,7 @@
 https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/github-zh-lite.user.js
 ```
 
-- **iPhone / iPad**：安装 [Stay](https://apps.apple.com/app/id1591620171) 或 [Userscripts](https://apps.apple.com/app/id1463298887) 扩展，在 Safari 中打开上面的地址并选择安装，然后在 Safari 扩展设置里允许它在 github.com 上运行。
+- **iPhone / iPad**：在 App Store 搜索安装 Stay 或 Userscripts 扩展，在 Safari 中打开上面的地址并选择安装，然后在 Safari 扩展设置里允许它在 github.com 上运行。
 - **电脑**：安装 Tampermonkey（或 Violentmonkey），打开上面的地址即可安装。
 
 ## 工作原理
