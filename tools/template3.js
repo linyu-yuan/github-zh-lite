@@ -1,29 +1,23 @@
 // ==UserScript==
 // @name         GitHub 中文化（iPhone 轻量版）
 // @namespace    https://github.com/linyu-yuan/github-zh-lite
-// @description  maboloshi/github-chinese 的 iPhone Safari（Stay / Userscripts）兼容版：翻译逻辑与词库保持原样，仅优化性能与兼容性。
 // @version      __VER__
-// @author       linyu-yuan（翻译逻辑与词库：沙漠之子 maboloshi、楼教主 52cik 及 github-chinese 贡献者）
-// @copyright    2016-2021 楼教主 (https://github.com/52cik); 2021-present 沙漠之子 (https://github.com/maboloshi); 2026 linyu-yuan
+// @description  GitHub 界面中文化，翻译逻辑与词库来自 maboloshi/github-chinese，适配 iPhone Safari
+// @author       linyu-yuan
 // @license      GPL-3.0
-// @homepageURL  https://github.com/linyu-yuan/github-zh-lite
-// @supportURL   https://github.com/linyu-yuan/github-zh-lite/issues
-// @downloadURL  https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/github-zh-lite.user.js
-// @updateURL    https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/github-zh-lite.user.js
 // @match        https://github.com/*
 // @match        https://gist.github.com/*
 // @run-at       document-start
 // @grant        none
-// @noframes
 // ==/UserScript==
-/*
+/*!
  * 基于 maboloshi/github-chinese __UPVER__（https://github.com/maboloshi/github-chinese），GPL-3.0。
  * 翻译函数（transText / fetchTransResult / handleElementNode / 头部补丁等）逐行移植自 main.user.js，
  * 词库由 locals.js 原样拆分（tools/gen3.js），未增删词条。本脚本同样以 GPL-3.0 发布。
  */
 (function () {
   'use strict';
-  if (window.__gzl3) return; window.__gzl3 = 1;
+  if (window.top !== window || window.__gzl3) return; window.__gzl3 = 1;
   var VER = '__VER__';
   var DICT_URL = 'https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/dict/';
   var CONF = /*CONF*/{};
@@ -45,7 +39,6 @@
     return out;
   }
   var MEM = {}, waiting = {};
-  MEM[CONF.common] = /*COMMON*/{}; // 公共词库内联：即使页面 CSP 禁止联网也能翻译公共部分
   function getDict(name, cb) {
     if (MEM[name]) { cb(MEM[name]); return; }
     var key = 'gzl3:' + name, raw = null;
@@ -64,7 +57,7 @@
   }
   function pruneLS() {
     if (pruneLS.done) return; pruneLS.done = 1;
-    var keep = { _: 1 }; keep[CONF.common] = 1; keep[CONF.navFile] = 1;
+    var keep = { _: 1 }; keep[CONF.f] = 1; keep[CONF.common] = 1; keep[CONF.navFile] = 1;
     for (var p in CONF.pages) keep[CONF.pages[p]] = 1;
     try {
       for (var i = LS.length - 1; i >= 0; i--) {
@@ -86,7 +79,7 @@
   // ---------- 页面类型检测（移植自上游 detectPageType） ----------
   var PAGE_MAP = { 'gist.github.com': 'gist', 'www.githubstatus.com': 'status', 'skills.github.com': 'skills', 'education.github.com': 'education' };
   var SPECIAL = { gist: 1, status: 1, skills: 1, education: 1 };
-  var reP = new RegExp(CONF.p), reR = new RegExp(CONF.r), reO = new RegExp(CONF.o);
+  var reP, reR, reO;
   function detectPageType() {
     var hostname = location.hostname, pathname = location.pathname, b = document.body;
     if (!b) return false;
@@ -519,5 +512,11 @@
     document.addEventListener('turbo:load', safe(handleTurboLoad), false);
     setupReactGlobalNavTranslation();
   }
-  safe(start)();
+  // 页面规则配置同样按需加载并缓存，主文件保持精简
+  getDict(CONF.f, function (c) {
+    if (!c) return;
+    for (var k in c) CONF[k] = c[k];
+    reP = new RegExp(CONF.p); reR = new RegExp(CONF.r); reO = new RegExp(CONF.o);
+    safe(start)();
+  });
 })();

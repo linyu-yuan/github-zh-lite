@@ -1,6 +1,6 @@
 # GitHub 中文化（iPhone 轻量版）
 
-把 GitHub 网页界面翻译成简体中文的用户脚本，是 [maboloshi/github-chinese](https://github.com/maboloshi/github-chinese)（GitHub 中文化插件）的 **iPhone Safari 兼容版**，可在 Stay、Userscripts 等 iOS Safari 扩展中运行，桌面浏览器同样可用。
+把 GitHub 网页界面翻译成简体中文的用户脚本，是 [maboloshi/github-chinese](https://github.com/maboloshi/github-chinese)（GitHub 中文化插件）的 **iPhone Safari 兼容版**，可在 Stay、Userscripts、Addons 等 iOS Safari 扩展中运行，桌面浏览器同样可用。
 
 <img src="screenshots/webkit-v3-repo.png" width="260"> <img src="screenshots/webkit-v3-issues.png" width="260">
 
@@ -17,7 +17,7 @@ https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/github-zh-lite.
 - **iPhone / iPad**：在 App Store 安装 Stay 或 Userscripts，在 Safari 中打开上面的地址并选择安装，然后在“设置 → Safari → 扩展”中允许该扩展访问 github.com 和 gist.github.com。
 - **电脑**：安装 Tampermonkey 或 Violentmonkey，打开上面的地址即可安装。
 
-请勿与原版 GitHub 中文化插件同时启用。
+请勿与原版 GitHub 中文化插件同时启用。脚本头部只保留最基本的字段（不含 `@updateURL` / `@downloadURL`），以兼容更多 iOS 脚本管理器；更新时请重新打开上面的地址安装。首次打开 GitHub 时需要联网下载一次规则和词库。
 
 ## 与原版的区别
 
@@ -25,7 +25,7 @@ https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/github-zh-lite.
 
 | 原版的问题 | 本版做法 |
 | --- | --- |
-| 通过 `@require` 加载约 2 MB 的 `locals.js`，部分 iOS 扩展加载失败或每次打开页面都要完整解析一遍 | 词库按页面类型拆成小文件（公共词库约 40 KB，单个页面词库一般几 KB 到几十 KB），存放在本仓库 `dict/` 目录，首次使用时下载一次，之后从 `localStorage` 读取 |
+| 通过 `@require` 加载约 2 MB 的 `locals.js`，部分 iOS 扩展加载失败或每次打开页面都要完整解析一遍 | 主脚本仅约 28 KB；页面规则配置和词库按页面类型拆成小文件（公共词库约 40 KB，单个页面词库一般几 KB 到几十 KB），存放在本仓库 `dict/` 目录，首次使用时下载一次，之后从 `localStorage` 读取 |
 | 依赖 `GM_getValue`、`GM_addStyle`、`GM_registerMenuCommand` 等接口，扩展不支持时脚本在开头就报错，表现为“完全不运行” | `@grant none`，不使用任何 `GM_*` 接口 |
 | 翻译后写回页面又触发自身的 MutationObserver，在部分页面形成“写入 → 观察 → 再遍历”的循环，并且整页遍历一次性在主线程完成，页面卡住无法点击 | 自身写入产生的变动记录直接丢弃；遍历按时间片分段执行，单段超时即让出主线程，剩余部分放到空闲时间完成；同一文本的查表/正则结果在当前页面内缓存 |
 | 只观察首个 `<body>`，Turbo 替换 `<body>` 后不再翻译新页面 | 观察整个文档，`<body>` 被替换后照常翻译；页面类型变化时按需加载对应词库 |
