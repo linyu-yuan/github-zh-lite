@@ -458,7 +458,13 @@
     "Release list pagination": "发行版列表分页",
     "Verified commit signature": "已验证的提交签名",
     "There isn't a GitHub Pages site here.": "这里没有 GitHub Pages 站点。",
-    "read the full documentation": "阅读完整文档"
+    "read the full documentation": "阅读完整文档",
+    "Cannot retrieve latest commit at this time.": "目前无法获取最新提交。",
+    "Legal and Resource Links": "法律与资源链接",
+    "GitHub's Social Media Links": "GitHub 社交媒体链接",
+    "Go to GitHub homepage": "转到 GitHub 主页",
+    "User profile": "用户资料",
+    "help for user roles": "用户角色帮助"
    },
    "r": [
     [
@@ -491,7 +497,10 @@
      "发行版 · $1",
      "Releases: "
     ]
-   ]
+   ],
+   "x": {
+    "{0} Using a comma within certain filters will aggregate the results. For example: {1} will show all repositories that have either Go or Ruby as their primary language.": "{0} 在某些筛选条件中使用逗号可合并结果。例如：{1} 会显示主要语言为 Go 或 Ruby 的所有仓库。"
+   }
   }
  }
 }

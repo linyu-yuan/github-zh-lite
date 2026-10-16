@@ -175,9 +175,9 @@
     if (HAS_CJK.test(v) && !ALPHA2.test(v)) { node.__zh = v; return; }
     var pp = node.parentNode;
     if (pp && pp.tagName === 'OPTION' && pp.getAttribute('value') && pp.parentNode && pp.parentNode.options && pp.parentNode.options.length > 30) { node.__zh = v; return; }
+    if (pp && pp.firstElementChild && tpl(node)) return;
     var t = translateString(v, true);
     if (t === DEFER) { later.push(node); return; }
-    if (t == null && tpl(node)) return;
     if (t != null && t !== v) {
       var po = node.parentNode;
       if (po && po.tagName === 'OPTION' && !po.hasAttribute('value')) po.setAttribute('value', po.value);

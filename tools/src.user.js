@@ -181,9 +181,9 @@
     if (HAS_CJK.test(v) && !ALPHA2.test(v)) { node.__zh = v; return; }
     var pp = node.parentNode;
     if (pp && pp.tagName === 'OPTION' && pp.getAttribute('value') && pp.parentNode && pp.parentNode.options && pp.parentNode.options.length > 30) { node.__zh = v; return; } // 语言/时区等长列表保持原文
+    if (pp && pp.firstElementChild && tpl(node)) return; // 先尝试整句模板（兄弟文本节点尚未被单独翻译）
     var t = translateString(v, true);
     if (t === DEFER) { later.push(node); return; }
-    if (t == null && tpl(node)) return;
     if (t != null && t !== v) {
       var po = node.parentNode;
       if (po && po.tagName === 'OPTION' && !po.hasAttribute('value')) po.setAttribute('value', po.value); // 保持提交值不变

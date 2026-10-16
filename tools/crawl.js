@@ -36,7 +36,7 @@ urls.push(V, V + '/tree/main/src', V + '/blob/main/README.md', V + '/blame/main/
 const CJK = /[\u4e00-\u9fa5]/;
 (async () => {
   const js = fs.readFileSync(SCRIPT, 'utf8');
-  const b = await chromium.launch();
+  const b = await chromium.launch({ args: ['--disable-features=AsyncDns,DnsOverHttps', '--disable-ipv6'] }); // 使用系统 DNS，避免被解析到错误的 CDN 节点
   const c = await b.newContext({ ...devices['iPhone 13'], locale: 'en-US' });
   await c.route(/raw\.githubusercontent\.com\/[^/]+\/github-zh-lite\/main\/dict\/.*/, r => {
     const n = decodeURIComponent(r.request().url().split('/dict/')[1].split('?')[0]), f = path.join(DICT, n);
