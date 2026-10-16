@@ -2,7 +2,7 @@
 // @name         GitHub 中文化（iPhone 轻量版）
 // @namespace    https://github.com/linyu-yuan/github-zh-lite
 // @description  为 iPhone Safari (Stay) 优化的 GitHub 界面中文化脚本：ES5、无 GM_ API、公共词库内联、页面词库按需加载并缓存、分片空闲翻译。词库来自 maboloshi/github-chinese。
-// @version      2.5.0
+// @version      2.6.0
 // @author       linyu-yuan (基于 沙漠之子 maboloshi / 楼教主 52cik 的 github-chinese)
 // @copyright    2016-2021 楼教主 (https://github.com/52cik); 2021-present 沙漠之子 (https://github.com/maboloshi); 2026 linyu-yuan
 // @license      GPL-3.0
@@ -24,7 +24,7 @@
 (function () {
   'use strict';
   if (window.__ghZhLite) return; window.__ghZhLite = 1;
-  var VER = '2.5.0';
+  var VER = '2.6.0';
   var DICT_URL = 'https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/dict/';
   var COMMON = { s: {}, r: [], t: {} };
   var CONF = {"p":"^\\/($|home|dashboard|feed|copilot|spark|signup|account_verifications|login\\/oauth|login|logout|sessions?|password_reset|orgs|explore|topics|notifications\\/subscriptions|notifications|watching|stars|issues|pulls|repos|search|trending|showcases|new\\/(import|project)|new|import|settings\\/(profile|admin|appearance|accessibility|notifications|billing|emails|security_analysis|security-log|security|auth|sessions|keys|ssh|gpg|organizations|enterprises|blocked_users|interaction_limits|code_review_limits|repositories|codespaces|models|codespaces\\/allow_permissions|deleted_repositories|packages|copilot|pages|replies|installations|apps\\/authorizations|reminders|sponsors-log|apps|(?:personal-access-|)tokens|developers|applications\\/new|applications|connections\\/applications|education\\/benefits|credentials)|settings|installations\\/new|marketplace|apps|account\\/(organizations\\/new|choose|upgrade|billing\\/history)|projects|redeem|discussions|collections|sponsors|sponsoring|github-copilot\\/(signup|free_signup|code-review-waitlist|pro)|codespaces|developer\\/register|features|security|sitemap|education|mcp)|^\\/users\\/[^\\/]+\\/(projects|packages|succession\\/invitation)","r":"^\\/[^\\/]+\\/[^\\/]+\\/(issues|pulls|pull|tree|watchers|stargazers|new|edit|delete|upload|find|models|wiki|branches|discussions|activity|rules|releases|packages|tags|labels|milestones?|compare|commit|blob|blame|actions(\\/metrics\\/(usage|performance))?|runs|deployments|security|pulse|community|forks|fork|import|graphs\\/(contributors|community|traffic|commit-activity|code-frequency)|network$|network\\/(dependencies|dependents|updates|members)|settings\\/(access|code_review_limits|interaction_limits|branches|branch_protection_rules|tag_protection|rules|actions|models\\/access-policy|hooks|copilot\\/(code_review|coding_agent)|environments|codespaces|pages|security_analysis|dependabot_rules|keys|secrets|variables|installations|notifications|key_links)|settings|transfer|projects\\/new|projects|pkgs|contribute|subscription|invitations|codespaces|attestations|custom-properties|reported_content|agents|tasks)","o":"^\\/[^\\/]+\\/[^\\/]+\\/(repositories\\/new|repositories|sponsoring|discussions|projects|packages|teams|new-team|people|outside-collaborators|pending_collaborators|dashboard|billing_managers\\/new|invitations?|settings\\/(profile|billing|roles|member_privileges|teams|import-export|blocked_users|interaction_limits|code_review_limits|moderators|repository-defaults|rules|codespaces|copilot|actions|hooks|discussions|packages|pages|projects|security_analysis|security|dependabot_rules|domains|secrets|variables|oauth_application_policy|installations|personal-access-token|reminders|sponsors-log|audit-log|deleted_repositories|applications\\/new|applications|apps\\/new|apps|publisher|policies\\/repositories|custom-properties|issue-fields|sandboxes)|topics|domain\\/new|audit-log\\/event_settings|billing\\/(history|plans)|policies\\/applications)|^\\/[^\\/]+\\/(enterprise_plan|sponsoring)"};
@@ -176,6 +176,8 @@
       var po = node.parentNode;
       if (po && po.tagName === 'OPTION' && !po.hasAttribute('value')) po.setAttribute('value', po.value); // 保持提交值不变
       node.__zh = t; node.nodeValue = t;
+      var ps = node.previousSibling; // “查看全部 ” + “分支” → “查看全部分支”
+      if (ps && ps.nodeType === 3 && /[\u4e00-\u9fa5]\s+$/.test(ps.nodeValue) && /^\s*[\u4e00-\u9fa5]/.test(t)) { ps.__zh = ps.nodeValue = ps.nodeValue.replace(/\s+$/, ''); }
     } else node.__zh = v;
   }
   function doAttrs(el, skipped) {
@@ -204,14 +206,15 @@
     var t = translateString(v, false);
     if (t && t !== v) { x.__zh_value = t; if (BTN_TYPE[ty]) x.setAttribute('value', t); x.value = t; } else x.__zh_value = v;
   }
+  var TIME_TAG = { 'RELATIVE-TIME': 1, 'TIME-AGO': 1, 'LOCAL-TIME': 1 };
+  function zhTime(x) { if (x.getAttribute('lang') !== 'zh-CN') { x.setAttribute('lang', 'zh-CN'); if (x.getAttribute('prefix') == null) x.setAttribute('prefix', ''); } }
   function accept(x) {
     if (x.nodeType === 3) return HAS_ALPHA.test(x.nodeValue) ? 1 : 3;
     var tg = x.tagName;
-    if (tg === 'RELATIVE-TIME' || tg === 'TIME-AGO' || tg === 'LOCAL-TIME') {
-      if (x.getAttribute('lang') !== 'zh-CN') { x.setAttribute('lang', 'zh-CN'); if (x.getAttribute('prefix') == null) x.setAttribute('prefix', ''); }
-      return 2;
-    }
+    if (TIME_TAG[tg]) { zhTime(x); return 2; }
     if (isSkip(x)) {
+      var rt = x.getElementsByTagName('relative-time'); // 跳过区（如文件列表的提交链接）里的时间也要本地化
+      for (var i = 0; i < rt.length; i++) zhTime(rt[i]);
       if (tg === 'INPUT' || tg === 'TEXTAREA') doInput(x);
       return 2;
     }
@@ -231,7 +234,7 @@
     else if (hasRIC) window.requestIdleCallback(run, { timeout: 1000 });
     else setTimeout(run, 16);
   }
-  function enqueue(n) { if (n && !n.__zq) { n.__zq = 1; queue.push(n); } }
+  function enqueue(n) { if (n && n.nodeType === 1 && TIME_TAG[n.tagName]) zhTime(n); if (n && !n.__zq) { n.__zq = 1; queue.push(n); } }
   function run(dl, syncLim) {
     scheduled = false;
     var t0 = now();
@@ -306,7 +309,12 @@
     if (/\/<user-name>\/<repo-name>/.test(meta)) { m = path.match(reR); return m ? 'repository/' + m[1] : 'repository'; }
     if (/\/<org-login>/.test(meta) || /^\/(?:orgs|organizations)/.test(path)) { m = path.match(reO); return m ? 'orgs/' + (m[1] || m[m.length - 1]) : 'orgs'; }
     m = path.match(reP);
-    return m ? (m[1] || m[m.length - 1]) : '';
+    if (m) return m[1] || m[m.length - 1];
+    // 元信息缺失或尚未更新（流式解析/软导航）时按网址推断：/owner/repo/... → 仓库，/user → 个人主页
+    var seg = path.split('/');
+    if (seg.length >= 3 && seg[1] && seg[2] && !/^(orgs|organizations|settings|users|marketplace|apps|features|topics|collections|sponsors|login|logout|signup|search|notifications|explore|trending|enterprises)$/.test(seg[1])) { m = path.match(reR); return m ? 'repository/' + m[1] : 'repository'; }
+    if (seg.length === 2 && seg[1]) return 'page-profile';
+    return '';
   }
   // ---------- 词库加载：内存缓存 → localStorage → 网络 ----------
   var MEM = {};
@@ -351,6 +359,8 @@
     getDict(type, function (d) { got = true; if (loadingType !== type) return; loadingType = null; setPage(type, d || {}); });
     if (!got) { page = { type: '', s: {}, t: {}, rules: { lit: [], any: [] } }; enqueue(document.body); schedule(); }
   }
+  // 页面类型与已加载词库不符（检测过早）时重新加载
+  function recheck() { if (!document.body || loadingType) return; var t = detect(); if (!has(t)) t = ''; if (t !== page.type) loadPage(); }
   // 空闲时预取常用页面词库（只存 localStorage，不解析）
   function prefetch() {
     if (!LS || !window.fetch) return;
@@ -429,7 +439,7 @@
     function ready() {
       killBanner(); setTimeout(function () { killBanner(); bannerWatch = false; }, 3000);
       urgentUntil = 0; urgentFor(800);
-      if (!pageTried) loadPage(); else enqueue(document.body);
+      if (!pageTried) loadPage(); else { recheck(); enqueue(document.body); }
       scheduled = false; run(null, 0); // 同步完成首轮全量扫描，再显示页面
       reveal();
       lastBody = document.body;
@@ -439,7 +449,7 @@
     var navT = 0, lastHref = location.href;
     function onNav() {
       var ev = arguments[0];
-      if (location.href === lastHref && document.body === lastBody && !(ev && ev.type === 'pageshow' && ev.persisted)) return; // 未导航：不重扫
+      if (location.href === lastHref && document.body === lastBody && !(ev && ev.type === 'pageshow' && ev.persisted)) { recheck(); return; } // 未导航：不重扫，但复核页面类型（元信息可能刚更新）
       clearTimeout(navT);
       navT = setTimeout(function () {
         lastBody = document.body; lastHref = location.href; urgentFor(1500); loadPage(); // 导航后的首轮不因滚动/触摸暂停

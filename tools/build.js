@@ -11,7 +11,7 @@ const OVJ=JSON.parse(fs.readFileSync(__dirname+'/overrides.json','utf8'));const 
 const extra=JSON.parse(fs.readFileSync('extra.json','utf8'));
 const pub=strs(L.public.static);for(const x of OV_DEL)delete pub[x];for(const k in extra)if(!(k in pub))pub[k]=extra[k];
 const [pubR]=rules(L.public.regexp);
-const common={s:pub,r:pubR,t:strs(L.title&&L.title.static)};
+const common={s:pub,r:(OVJ.commonRules||[]).concat(pubR),t:strs(L.title&&L.title.static)};
 fs.mkdirSync('out/dict',{recursive:true});const list={};let tot=0,fnAll=0;
 for(const k of Object.keys(L)){if(['public','title'].includes(k))continue;const p=L[k];if(!p||typeof p!=='object')continue;
  const s=strs(p.static);for(const x in s)if(pub[x]===s[x])delete s[x];for(const x of OV_DEL)delete s[x];const ovp=OV[k]||{};for(const x in ovp)s[x]=ovp[x];const [r,fn]=rules(p.regexp);fnAll+=fn;
