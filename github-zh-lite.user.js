@@ -19,7 +19,7 @@
   'use strict';
   try { if (window.top !== window.self) return; } catch (e) { return; }
   if (window.__ghZhLite) return; window.__ghZhLite = 1;
-  var VER = '2.7.1';
+  var VER = '2.7.2';
   var DICT_URL = 'https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/dict/';
   var COMMON = { s: {}, r: [], t: {} };
   var CONF = {
@@ -148,10 +148,15 @@
       for (i = 0; i < SKIP_CLASS_SUB.length; i++) if (cn.indexOf(SKIP_CLASS_SUB[i]) !== -1) return 1;
     }
     if (tg === 'A') { v = x.getAttribute('href'); if (v) for (i = 0; i < SKIP_HREF.length; i++) if (v.indexOf(SKIP_HREF[i]) !== -1) return 1; }
-    if (DESC_TAG[tg]) { try { if (x.matches(isSet() ? 'h1 bdi' : DESC_SEL)) return 1; } catch (e) {} }
+    if (DESC_TAG[tg]) { try { if (x.matches(descSel(x))) return 1; } catch (e) {} }
     return 0;
   }
-  function descSkip(x) { try { return x.matches(isSet() ? 'h1 bdi' : DESC_SEL) ? 1 : 0; } catch (e) { return 0; } }
+  function descSkip(x) { try { return x.matches(descSel(x)) ? 1 : 0; } catch (e) { return 0; } }
+  function descSel(x) {
+    if (isSet() || (x.closest && x.closest('.blankslate,.Blankslate,[class*="Blankslate"],[data-testid*="empty"]'))) return 'h1 bdi';
+    return isFeed() ? 'h1 bdi,.Box-row h2,[data-testid="results-list"] h3' : DESC_SEL;
+  }
+  function isFeed() { var p = location.pathname; return p === '/' || p === '/feed' || p === '/dashboard' || /^\/orgs\/[^\/]+\/dashboard/.test(p); }
   function isSet() { return /\/settings(\/|$)/.test(location.pathname); }
   function isSkip(x) { var c = x.__zs; if (c === undefined) c = x.__zs = classify(x); return c === 1; }
   function inSkip(el) {
@@ -168,11 +173,15 @@
     'Gists':'代码片段','Organizations':'组织','Sponsors':'赞助','Discussions':'讨论','Your repositories':'您的仓库','Your stars':'您的星标','Your projects':'您的项目','Trending':'趋势','Topics':'主题','Collections':'集合',
     'Search':'搜索','New repository':'新建仓库','Import repository':'导入仓库','Copilot':'Copilot','Feed':'动态','Home':'主页'
   };
+  var FEEDV = {'released':'发布了','starred':'星标了','forked':'复刻了','forked from':'复刻自','created a repository':'创建了仓库','pushed to':'推送到',
+    'opened':'打开了','followed':'关注了','started following':'开始关注','commented on':'评论了','published':'发布了','sponsored':'赞助了',
+    'created a branch':'创建了分支','created a tag':'创建了标签','made public':'设为公开','contributed to':'贡献于','merged':'合并了','closed':'关闭了'};
   function doText(node, checked) {
     var v = node.nodeValue;
     if (node.__zh === v && node.__zg === gen) return;
     node.__zg = gen;
-    if (!checked) { var p = node.parentNode; if (!p || p.nodeType !== 1 || inSkip(p)) { var hz = HDR[v.replace(/^\s+|\s+$/g, '')]; if (hz && p && p.closest && p.closest('.AppHeader-context-item-label, .AppHeader-context')) { node.__zh = node.nodeValue = v.replace(/\S[\s\S]*\S|\S/, hz); } else node.__zh = v; return; } }
+    if (!checked) { var p = node.parentNode; if (!p || p.nodeType !== 1 || inSkip(p)) { var tv = v.replace(/^\s+|\s+$/g, ''), hz = HDR[tv];
+      if (!hz && p && p.tagName !== 'A' && hasOwn.call(FEEDV, tv) && isFeed()) { node.__zh = node.nodeValue = v.replace(tv, FEEDV[tv]); return; } if (hz && p && p.closest && p.closest('.AppHeader-context-item-label, .AppHeader-context')) { node.__zh = node.nodeValue = v.replace(/\S[\s\S]*\S|\S/, hz); } else node.__zh = v; return; } }
     if (HAS_CJK.test(v) && !ALPHA2.test(v)) { node.__zh = v; return; }
     var pp = node.parentNode;
     if (pp && pp.tagName === 'OPTION' && pp.getAttribute('value') && pp.parentNode && pp.parentNode.options && pp.parentNode.options.length > 30) { node.__zh = v; return; }

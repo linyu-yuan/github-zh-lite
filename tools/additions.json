@@ -590,6 +590,19 @@
     "Recommended for you": "为您推荐",
     "Latest from our changelog": "更新日志最新动态"
    }
+  },
+  "projects": {
+   "pages": "^_common$",
+   "s": {
+    "Create your first GitHub project": "创建您的第一个 GitHub 项目",
+    "Projects are a customizable, flexible tool for planning and tracking your work.": "项目是用于规划和跟踪工作的可自定义、灵活的工具。",
+    "New project": "新建项目",
+    "Learn more about projects": "详细了解项目",
+    "Link a project": "关联项目",
+    "Welcome to projects": "欢迎使用项目",
+    "There aren't any projects yet": "还没有任何项目",
+    "No projects": "没有项目"
+   }
   }
  }
 }
