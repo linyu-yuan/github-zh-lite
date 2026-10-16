@@ -19,7 +19,7 @@
   'use strict';
   try { if (window.top !== window.self) return; } catch (e) { return; }
   if (window.__ghZhLite) return; window.__ghZhLite = 1;
-  var VER = '2.7.0';
+  var VER = '2.7.1';
   var DICT_URL = 'https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/dict/';
   var COMMON = { s: {}, r: [], t: {} };
   var CONF = {
@@ -148,10 +148,11 @@
       for (i = 0; i < SKIP_CLASS_SUB.length; i++) if (cn.indexOf(SKIP_CLASS_SUB[i]) !== -1) return 1;
     }
     if (tg === 'A') { v = x.getAttribute('href'); if (v) for (i = 0; i < SKIP_HREF.length; i++) if (v.indexOf(SKIP_HREF[i]) !== -1) return 1; }
-    if (DESC_TAG[tg]) { try { if (x.matches(DESC_SEL)) return 1; } catch (e) {} }
+    if (DESC_TAG[tg]) { try { if (x.matches(isSet() ? 'h1 bdi' : DESC_SEL)) return 1; } catch (e) {} }
     return 0;
   }
-  function descSkip(x) { try { return x.matches(DESC_SEL) ? 1 : 0; } catch (e) { return 0; } }
+  function descSkip(x) { try { return x.matches(isSet() ? 'h1 bdi' : DESC_SEL) ? 1 : 0; } catch (e) { return 0; } }
+  function isSet() { return /\/settings(\/|$)/.test(location.pathname); }
   function isSkip(x) { var c = x.__zs; if (c === undefined) c = x.__zs = classify(x); return c === 1; }
   function inSkip(el) {
     for (var e = el; e && e.nodeType === 1; e = e.parentNode) {
@@ -165,7 +166,7 @@
   var HDR = {
     'Pull requests':'拉取请求','Issues':'议题','Notifications':'通知','Dashboard':'仪表板','Explore':'探索','Marketplace':'市场','Codespaces':'代码空间','Settings':'设置','Repositories':'仓库','Projects':'项目','Stars':'星标',
     'Gists':'代码片段','Organizations':'组织','Sponsors':'赞助','Discussions':'讨论','Your repositories':'您的仓库','Your stars':'您的星标','Your projects':'您的项目','Trending':'趋势','Topics':'主题','Collections':'集合',
-    'Search':'搜索','New repository':'新建仓库','Import repository':'导入仓库','Copilot':'Copilot'
+    'Search':'搜索','New repository':'新建仓库','Import repository':'导入仓库','Copilot':'Copilot','Feed':'动态','Home':'主页'
   };
   function doText(node, checked) {
     var v = node.nodeValue;
@@ -407,7 +408,12 @@
   var MO_OPT = { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'open'] };
   var lastBody = null;
   function observe() { mo.disconnect(); mo.observe(document.documentElement, MO_OPT); }
-  var bannerWatch = true;
+  var bannerWatch = true, headMo = null;
+  function watchHead() {
+    var h = document.head; if (!h || (headMo && headMo.h === h)) return;
+    if (headMo) headMo.disconnect();
+    headMo = new MutationObserver(killBanner); headMo.h = h; headMo.observe(h, { childList: true });
+  }
   function killBanner() {
     var m = document.querySelectorAll('meta[name="apple-itunes-app"]');
     for (var i = 0; i < m.length; i++) if (m[i].parentNode) m[i].parentNode.removeChild(m[i]);
@@ -443,13 +449,13 @@
   }
   function start() {
     if (!document.documentElement) return setTimeout(start, 10);
-    killBanner(); hide();
+    killBanner(); watchHead(); hide();
     urgentFor(60000);
     observe();
     loadCommon();
     if (document.body) loadPage();
     function ready() {
-      killBanner(); setTimeout(function () { killBanner(); bannerWatch = false; }, 3000);
+      killBanner(); watchHead(); setTimeout(function () { killBanner(); bannerWatch = false; }, 3000);
       urgentUntil = 0; urgentFor(800);
       if (!pageTried) loadPage(); else { recheck(); enqueue(document.body); }
       scheduled = false; run(null, 0);
@@ -460,11 +466,12 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready, false); else ready();
     var navT = 0, lastHref = location.href;
     function onNav() {
+      killBanner(); watchHead();
       var ev = arguments[0];
       if (location.href === lastHref && document.body === lastBody && !(ev && ev.type === 'pageshow' && ev.persisted)) { recheck(); return; }
       clearTimeout(navT);
       navT = setTimeout(function () {
-        lastBody = document.body; lastHref = location.href; urgentFor(1500); loadPage();
+        killBanner(); watchHead(); lastBody = document.body; lastHref = location.href; urgentFor(1500); loadPage();
       }, 150);
     }
     var evs = ['turbo:load', 'turbo:render', 'pjax:end', 'soft-nav:end', 'soft-nav:react-done', 'popstate', 'pageshow'];

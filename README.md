@@ -2,7 +2,6 @@
 
 把 GitHub 网页界面翻译成简体中文的用户脚本，专为 iPhone Safari 优化，桌面浏览器同样可用。术语采用 [GitHub 官方简体中文文档](https://docs.github.com/zh) 的译法（仓库、拉取请求、议题、复刻、星标、工作流、工件等），拿不准的词保留英文。
 
-<img src="screenshots/repo-menu.png" width="300"> <img src="screenshots/code-menu.png" width="300">
 
 ## 安装
 
