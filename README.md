@@ -1,8 +1,13 @@
-# GitHub 中文化（iPhone 轻量版）v2.4
+# GitHub 中文化（iPhone 轻量版）v2.5
 
 专为 **iPhone Safari + Stay** 优化的 GitHub 界面中文化用户脚本。
 
 安装：<https://raw.githubusercontent.com/linyu-yuan/github-zh-lite/main/github-zh-lite.user.js>
+
+## v2.5 变化
+- 渐进显示：不再等 DOMContentLoaded，解析越过首屏（视口内内容已翻译）即显示页面；硬超时由 600 ms 降为 300 ms。
+- 显示前只做精确查表，日期/计数等正则规则推迟到显示后补译。
+- 6 倍降速实测：页面可见时间比 v2.4 提前约 0.15–0.35 s，英文闪烁仍为 0。
 
 ## v2.4 变化
 - 名称改为“GitHub 中文化（iPhone 轻量版）”（仓库名与安装地址不变，更新不受影响）。

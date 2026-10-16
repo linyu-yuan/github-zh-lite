@@ -86,10 +86,12 @@
     return null;
   }
   // 返回 [译文|null, 是否属于“精确未命中”]
+  var DEFER = {}, deferRules = false, later = [];
   function lookup(k) {
     if (hasOwn.call(page.s, k)) return page.s[k];
     if (hasOwn.call(COMMON.s, k)) return COMMON.s[k];
     if (hasOwn.call(memo, k)) return memo[k];
+    if (deferRules) return DEFER; // 显示前只做精确查表，正则留到显示后
     var res = builtin(k);
     if (res == null && k.length < 200) {
       res = runRules(page.rules, k);
@@ -104,6 +106,7 @@
     var k = s.replace(/\s+/g, ' ').trim();
     if (!k) return null;
     var t = lookup(k);
+    if (t === DEFER) { var m0 = /^(.*?)([:：…]|\.\.\.)$/.exec(k), z0 = m0 && m0[1] && (page.s[m0[1]] || COMMON.s[m0[1]]); if (!z0) return DEFER; t = z0 + m0[2]; }
     if (t == null) {
       var m = /^(.*?)([:：…]|\.\.\.)$/.exec(k);
       if (m && m[1] && (t = page.s[m[1]] || COMMON.s[m[1]])) t += m[2];
@@ -168,6 +171,7 @@
     var pp = node.parentNode;
     if (pp && pp.tagName === 'OPTION' && pp.getAttribute('value') && pp.parentNode && pp.parentNode.options && pp.parentNode.options.length > 30) { node.__zh = v; return; } // 语言/时区等长列表保持原文
     var t = translateString(v, true);
+    if (t === DEFER) { later.push(node); return; }
     if (t != null && t !== v) {
       var po = node.parentNode;
       if (po && po.tagName === 'OPTION' && !po.hasAttribute('value')) po.setAttribute('value', po.value); // 保持提交值不变
@@ -182,6 +186,7 @@
       if (el[mk] === v && el.__zga === gen) continue;
       if (skipped && a !== 'placeholder') { el[mk] = v; continue; }
       var t = translateString(v, false);
+      if (t === DEFER) { later.push(el); el.__zga = -1; continue; }
       el[mk] = t || v;
       if (t && t !== v) el.setAttribute(a, t);
     }
@@ -264,6 +269,7 @@
     if (debT) { clearTimeout(debT); debT = 0; }
     drain();
     if (qi < queue.length || walker) { scheduled = false; run(null, now() < urgentUntil ? 0 : SYNC_BUDGET); }
+    if (hideEl && foldDone()) reveal(); // 首屏已翻译即显示
   });
   function drain() {
     debT = 0;
@@ -381,17 +387,38 @@
     var m = document.querySelectorAll('meta[name="apple-itunes-app"]');
     for (var i = 0; i < m.length; i++) if (m[i].parentNode) m[i].parentNode.removeChild(m[i]);
   }
-  // ---------- 防英文闪烁：有缓存词库时，首轮翻译完成前隐藏页面，最多 600 ms ----------
+  // ---------- 防英文闪烁：有缓存词库时，首屏翻译完成前隐藏页面，最多 300 ms ----------
   var hideEl = null, hideT = 0;
+  var HIDE_MODE = 'vis', HIDE_DEFER = true, HIDE_MAX = 300; // 实测：visibility 隐藏 + 显示前推迟正则 综合最佳
   function hasCache() { if (!LS) return false; try { return LS.getItem('gzl:' + VER + ':_common') !== null; } catch (e) { return false; } }
+  // 显示策略：首屏（视口内）内容处理完即显示；硬超时 300 ms
+  var FOLD_T = 0;
   function hide() {
     if (!hasCache()) return; // 首次（无缓存）访问不隐藏
+    deferRules = HIDE_DEFER;
     hideEl = document.createElement('style'); hideEl.id = 'gzl-hide';
-    hideEl.textContent = 'html{visibility:hidden!important}';
+    hideEl.textContent = HIDE_MODE === 'color' ? 'body,body *{color:transparent!important;text-shadow:none!important}' : 'html{visibility:hidden!important}';
     (document.head || document.documentElement).appendChild(hideEl);
-    hideT = setTimeout(reveal, 600);
+    hideT = setTimeout(reveal, HIDE_MAX);
   }
-  function reveal() { clearTimeout(hideT); if (hideEl) { if (hideEl.parentNode) hideEl.parentNode.removeChild(hideEl); hideEl = null; } }
+  // 解析已越过首屏：body 最深的最后一个元素已在视口下方
+  function foldDone() {
+    var b = document.body; if (!b) return false;
+    var t = now(); if (t - FOLD_T < 25) return false; FOLD_T = t;
+    var e = b.lastElementChild, d = 0;
+    while (e && e.lastElementChild && d++ < 12) e = e.lastElementChild;
+    for (var i = 0; e && i < 8; i++, e = e.previousElementSibling || e.parentElement) {
+      if (e === b) break;
+      var r = e.getBoundingClientRect();
+      if (r.height || r.width) return r.top > innerHeight;
+    }
+    return false;
+  }
+  function reveal() {
+    clearTimeout(hideT);
+    if (hideEl) { if (hideEl.parentNode) hideEl.parentNode.removeChild(hideEl); hideEl = null; }
+    if (deferRules) { deferRules = false; var l = later; later = []; for (var i = 0; i < l.length; i++) { var n = l[i]; if (n.nodeType === 3) n.__zg = 0; enqueue(n); } urgentFor(300); schedule(); }
+  }
   function start() {
     if (!document.documentElement) return setTimeout(start, 10);
     killBanner(); hide();
